@@ -1,0 +1,17 @@
+[package]
+name = "triad"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+# Rust uses Stack unwinding by default to free up memory on pancis. This will
+# the support of the underlying OS. We disable stack unwinding by simply
+# aborting on panics. Refer https://wiki.osdev.org/Rust_Bare_Bones.
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+
+[dependencies]
