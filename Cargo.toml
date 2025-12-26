@@ -5,8 +5,8 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-# Rust uses Stack unwinding by default to free up memory on pancis. This will
-# the support of the underlying OS. We disable stack unwinding by simply
+# Rust uses Stack unwinding by default to free up memory on panics. This will
+# require the support of the underlying OS. We disable stack unwinding by simply
 # aborting on panics. Refer https://wiki.osdev.org/Rust_Bare_Bones.
 [profile.dev]
 panic = "abort"
@@ -15,3 +15,10 @@ panic = "abort"
 panic = "abort"
 
 [dependencies]
+
+# Do not support building the binary in test or bench modes.
+# These require underlying kernel support.
+[[bin]]
+name = "triad"
+test = false
+bench = false

@@ -31,3 +31,6 @@ Cargo.toml.orig
 .env
 .idea/
 .vscode/
+
+# Host triple duplicate specifications
+triad-llvm-target.json
