@@ -15,6 +15,7 @@ panic = "abort"
 panic = "abort"
 
 [dependencies]
+bootloader = "0.9"
 
 # Do not support building the binary in test or bench modes.
 # These require underlying kernel support.

@@ -15,14 +15,7 @@
 
 use core::panic::PanicInfo;
 
-// Ruse uses name mangling by default. Name mangling is the process of giving
-// every function a unique name. We do not want the Rust compiler to change the
-// name of the _start function. This is required to let the linker know of the
-// entry point.
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
-    loop {}
-}
+static VGA_BUFFER_ADDRESS: usize = 0xb8000;
 
 // This function is called on panic.
 //
@@ -31,5 +24,27 @@ pub extern "C" fn _start() -> ! {
 // returning the never type (!).
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
+    loop {}
+}
+
+// Rust uses name mangling by default. Name mangling is the process of giving
+// every function a unique name. We do not want the Rust compiler to change the
+// name of the _start function. This is required to let the linker know of the
+// entry point.
+#[no_mangle]
+pub extern "C" fn _start() -> ! {
+    let message: &[u8] = b"Toy Rust Kernel!";
+    let vga_buffer: *mut u8 = VGA_BUFFER_ADDRESS as *mut u8;
+
+
+    for (i, &byte) in message.iter().enumerate() {
+        unsafe {
+            // Each VGA buffer character contains an ASCII and a color byte.
+            *vga_buffer.offset(i as isize * 2) = byte;
+            // Green (0x2) -> http://fountainware.com/EXPL/vga_color_palettes.htm
+            *vga_buffer.offset(i as isize * 2 + 1) = 0x2;
+        }
+    }
+
     loop {}
 }

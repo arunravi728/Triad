@@ -5,7 +5,7 @@ A toy operating system written in Rust. The name is a homage to [Operating Syste
 2.  Concurrency
 3.  Persistence
 
-## Build
+## Build & Run
 The target triple for Rust is provided in `triad-llvm-target.jsonc`. However, the internal Rust parser only supports strict `.json` files. To generate the target triple `.json` file, run - 
 
 ```bash
@@ -16,4 +16,10 @@ After the `.json` file is created, we can build the kernel -
 
 ```bash
 cargo build
+```
+
+We can follow this up by running the below command to boot our kernel inside Qemu - 
+
+```bash
+cargo run
 ```
