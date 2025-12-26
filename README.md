@@ -18,7 +18,7 @@ After the `.json` file is created, we can build the kernel -
 cargo build
 ```
 
-We can follow this up by running the below command to boot our kernel inside Qemu - 
+We can follow this up by running the below command to boot our kernel inside QEMU - 
 
 ```bash
 cargo run
