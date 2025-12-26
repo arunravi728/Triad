@@ -15,5 +15,5 @@ python3 remove-json-comments.py triad-llvm-target.jsonc
 After the `.json` file is created, we can build the kernel -
 
 ```bash
-cargo build --target triad-llvm-target.json
+cargo build
 ```
