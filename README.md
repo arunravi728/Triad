@@ -23,3 +23,9 @@ We can follow this up by running the below command to boot our kernel inside Qem
 ```bash
 cargo run
 ```
+
+## Acknowledgements
+This Rust OS was created with the help of the following resources - 
+1. https://os.phil-opp.com/
+2. https://wiki.osdev.org/Expanded_Main_Page
+3. https://osblog.stephenmarz.com/
