@@ -3,7 +3,6 @@
 // memory, the network, random numbers, standard output, or any other features
 // requiring OS abstractions or specific hardware.
 #![no_std]
-
 // In a typical Rust binary that links the standard library, execution starts
 // in a C runtime library that creates a stack and places the arguments in the
 // right registers. Post this, the runtime calls the main function.
@@ -15,7 +14,7 @@
 
 use core::panic::PanicInfo;
 
-static VGA_BUFFER_ADDRESS: usize = 0xb8000;
+mod vga;
 
 // This function is called on panic.
 //
@@ -33,18 +32,7 @@ fn panic(_info: &PanicInfo) -> ! {
 // entry point.
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    let message: &[u8] = b"Toy Rust Kernel!";
-    let vga_buffer: *mut u8 = VGA_BUFFER_ADDRESS as *mut u8;
-
-
-    for (i, &byte) in message.iter().enumerate() {
-        unsafe {
-            // Each VGA buffer character contains an ASCII and a color byte.
-            *vga_buffer.offset(i as isize * 2) = byte;
-            // Green (0x2) -> http://fountainware.com/EXPL/vga_color_palettes.htm
-            *vga_buffer.offset(i as isize * 2 + 1) = 0x2;
-        }
-    }
+    vga::print("Toy Rust Kernel");
 
     loop {}
 }
