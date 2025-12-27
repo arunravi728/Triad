@@ -16,6 +16,7 @@ panic = "abort"
 
 [dependencies]
 bootloader = "0.9"
+volatile = "0.2.6"
 
 # Do not support building the binary in test or bench modes.
 # These require underlying kernel support.

@@ -1,3 +1,5 @@
+use volatile::Volatile;
+
 // The VGA buffer is accessible via memory-mapped I/O to the address 0xb8000.
 static VGA_BUFFER_ADDRESS: usize = 0xb8000;
 
@@ -49,8 +51,8 @@ impl ColorCode {
 
 // Each VGA buffer character contains an ASCII and a color byte.
 //
-// Field ordering in default structs is undefined in Rust. repr(C) attribute
-// guarantees that the struct’s fields are laid out exactly as a C struct.
+// Field ordering in default structs is undefined in Rust. repr(C) attribute guarantees that the
+// struct’s fields are laid out exactly as a C struct.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
 struct Character {
@@ -58,14 +60,16 @@ struct Character {
     color_code: ColorCode,
 }
 
-// The VGA text buffer is a two-dimensional array with typically 25 rows and 80
-// columns, which is directly rendered to the screen.
+// The VGA text buffer is a two-dimensional array with typically 25 rows and 80 columns, which is
+// directly rendered to the screen.
 const BUFFER_HEIGHT: usize = 25;
 const BUFFER_WIDTH: usize = 80;
 
 #[repr(transparent)]
 struct Buffer {
-    chars: [[Character; BUFFER_WIDTH]; BUFFER_HEIGHT],
+    // Volatile avoids any future Rust compiler optimizations that might assume the write to the
+    // buffer is not necessary.
+    chars: [[Volatile<Character>; BUFFER_WIDTH]; BUFFER_HEIGHT],
 }
 
 // A public writer interface used to output text to the VGA buffer.
@@ -73,24 +77,58 @@ pub struct Writer {
     // Keeps track of the current position in the last row
     column_position: usize,
     color_code: ColorCode,
-    // Reference to the VGA buffer. We use a static lifetime here to tell the
-    // compiler that the VGA buffer reference for the lifetime of the program.
+    // Reference to the VGA buffer. We use a static lifetime here to tell the compiler that the VGA
+    // buffer reference for the lifetime of the program.
     buffer: &'static mut Buffer,
 }
+
+const NEW_LINE_CHARACTER: u8 = b'\n';
 
 impl Writer {
     pub fn write(&mut self, message: &str) {
         for byte in message.bytes() {
-            self.write_byte(byte);
+            match byte {
+                NEW_LINE_CHARACTER => self.new_line(),
+                byte => self.write_byte(byte),
+            }
         }
     }
 
     fn write_byte(&mut self, byte: u8) {
-        self.buffer.chars[BUFFER_HEIGHT - 1][self.column_position] = Character {
+        if self.column_position >= BUFFER_WIDTH {
+            self.new_line();
+        }
+
+        self.buffer.chars[BUFFER_HEIGHT - 1][self.column_position].write(Character {
             byte: byte,
+            color_code: self.color_code,
+        });
+
+        self.column_position += 1;
+    }
+
+    // If we encounter a new line, we move all the characters up one row.
+    // If the number of rows exceeds the buffer's height, we lose the oldest text.
+    fn new_line(&mut self) {
+        for row in 1..BUFFER_HEIGHT {
+            for column in 0..BUFFER_WIDTH {
+                let character = self.buffer.chars[row][column].read();
+                self.buffer.chars[row - 1][column].write(character);
+            }
+        }
+
+        self.column_position = 0;
+        self.clear_row(BUFFER_HEIGHT - 1);
+    }
+
+    fn clear_row(&mut self, row: usize) {
+        let blank = Character {
+            byte: b' ',
             color_code: self.color_code,
         };
 
-        self.column_position += 1;
+        for column in 0..BUFFER_WIDTH {
+            self.buffer.chars[row][column].write(blank);
+        }
     }
 }
