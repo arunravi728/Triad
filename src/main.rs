@@ -53,12 +53,36 @@ pub extern "C" fn _start() -> ! {
     loop {}
 }
 
+// We use the isa-debug-exit device provide by QEMU to exit when running tests. We can quit QEMU
+// by writing to the port exposed by the device. The isa-debug-exit device uses port-mapped I/O.
+// Whenever a value is written to the ISA_DEBUG_EXIT_PORT, QEMU exits with status (value << 1) | 1.
+const ISA_DEBUG_EXIT_PORT: u16 = 0xf4;
+
+// Exit codes are chosen such that they don't clash with the default QEMU exit codes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u32)]
+pub enum QemuExitCode {
+    Success = 0x10,
+    Failed = 0x11,
+}
+
+pub fn exit_qemu(exit_code: QemuExitCode) {
+    use x86_64::instructions::port::Port;
+    // The operation is unsafe as writing to an I/O port can result in undefined behavior.
+    unsafe {
+        let mut port = Port::new(ISA_DEBUG_EXIT_PORT);
+        port.write(exit_code as u32);
+    }
+}
+
 #[cfg(test)]
 pub fn test_runner(tests: &[&dyn Fn()]) {
     println!("Running {} tests", tests.len());
     for test in tests {
         test();
     }
+
+    exit_qemu(QemuExitCode::Success);
 }
 
 #[test_case]
