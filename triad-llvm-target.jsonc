@@ -1,7 +1,6 @@
-// This is a duplicate of file triad-llvm-target.json target triple
-// specification. This file has comments describing some of the key fields in
-// the specification. This is because Rust’s internal parser for target
-// specification files expects strict JSON.
+// This is a duplicate of file triad-llvm-target.json target triple specification. This file has
+// comments describing some of the key fields in the specification. This is because Rust’s internal
+// parser for target specification files expects strict JSON.
 {
     "llvm-target": "x86_64-unknown-none",
     "data-layout": "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128",
@@ -18,23 +17,22 @@
     "linker-flavor": "ld.lld",
     "linker": "rust-lld",
 
-    // Abort on panics instead of stack unwinding.
+    // Rust uses Stack unwinding by default to free up memory on panics. This will require the
+    // support of the underlying OS. We disable stack unwinding by simply aborting on panics.
+    // Refer https://wiki.osdev.org/Rust_Bare_Bones.
     "panic-strategy": "abort",
 
-    // The red zone is an optimization that allows functions to temporarily use
-    // 128 bytes below their stack frame without adjusting the stack pointer.
-    // This can cause data corruption during hardware interrupts.
-    // Refer https://os.phil-opp.com/red-zone/.
+    // The red zone is an optimization that allows functions to temporarily use 128 bytes
+    // below their stack frame without adjusting the stack pointer. This can cause data corruption
+    // during hardware interrupts. Refer https://os.phil-opp.com/red-zone/.
     "disable-redzone": true,
 
-    // Single Instruction Multiple Data (SIMD) support is configured via mmx &
-    // sse. Using SIMD registers in the kernels leads to performance issues. As
-    // these registers are very large, there is a performance penalty to retain
-    // state on hardware interrupts and context switches.
+    // Single Instruction Multiple Data (SIMD) support is configured via mmx & sse. Using SIMD
+    // registers in the kernels leads to performance issues. As these registers are very large,
+    // there is a performance penalty to retain state on hardware interrupts and context switches.
     //
-    // However, floating point operations on x86 requires SIMD support. The
-    // soft-float feature emulates floating point operations via software
-    // based on normal integers.
+    // However, floating point operations on x86 requires SIMD support. The soft-float feature
+    // emulates floating point operations via software based on normal integers.
     //
     // Refer https://os.phil-opp.com/disable-simd/
     "features": "-mmx,-sse,+soft-float",
