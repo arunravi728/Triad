@@ -24,6 +24,12 @@ We can follow this up by running the below command to boot our kernel inside QEM
 cargo run
 ```
 
+To run associated unit tests - 
+
+```bash
+cargo test
+```
+
 ## Acknowledgements
 This Rust OS was created with the help of the following resources - 
 1. https://os.phil-opp.com/
