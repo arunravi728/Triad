@@ -1,22 +1,41 @@
 use volatile::Volatile;
+use lazy_static::lazy_static;
+use spin::Mutex;
+use core::fmt;
 
 // The VGA buffer is accessible via memory-mapped I/O to the address 0xb8000.
 static VGA_BUFFER_ADDRESS: usize = 0xb8000;
 
-pub fn print(message: &str) {
-    let mut writer = Writer {
+// In Rust static variables are initialized at compile-time as opposed to run-time. This means we
+// can only use constant functions in static variables. It also means we cannot de-reference raw
+// pointers when initializing static variables.
+//
+// The lazy static helps solve this problem by initializing static variables at run time when they
+// are first accessed. The macro ensures that initialization is atomic, even if multiple threads
+// access it simultaneously for the first time, it is initialized only once without data races.
+lazy_static! {
+    // The ref keyword defines a static variable that acts as a reference. It is part of the lazy
+    // static macro. When WRITER ois accessed, it dereferences the internal wrapper to provide
+    // access to the underlying Writer instance. This ensures the Writer is initialized exactly once
+    // the first time it is accessed at runtime.
+    //
+    // We need interior mutability for the WRITER to modify the VGA buffer. But we need to do this
+    // in a thread safe manner. We thus use a spinlock. A spinlock is a lock that causes a thread
+    // trying to acquire it to simply wait in a loop ("spin") while repeatedly checking whether the
+    // lock is available. Since the thread remains active but is not performing a useful task, the
+    // use of such a lock is a kind of busy waiting. Spinlocks are efficient if threads are likely
+    // to be blocked for only short periods.
+    pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
         column_position: 0,
         color_code: ColorCode::new(Color::Green, Color::Black),
         buffer: unsafe { &mut *(VGA_BUFFER_ADDRESS as *mut Buffer) },
-    };
-
-    writer.write(message);
+    });
 }
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
-pub enum Color {
+enum Color {
     Black = 0,
     Blue = 1,
     Green = 2,
@@ -130,5 +149,12 @@ impl Writer {
         for column in 0..BUFFER_WIDTH {
             self.buffer.chars[row][column].write(blank);
         }
+    }
+}
+
+impl fmt::Write for Writer {
+    fn write_str(&mut self, message: &str) -> fmt::Result {
+        self.write(message);
+        Ok(())
     }
 }

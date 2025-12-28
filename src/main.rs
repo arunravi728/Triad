@@ -13,6 +13,7 @@
 use core::panic::PanicInfo;
 
 mod vga;
+mod print;
 
 // This function is called on panic.
 //
@@ -28,7 +29,9 @@ fn panic(_info: &PanicInfo) -> ! {
 // required to let the linker know of the entry point.
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    vga::print("Toy Rust Kernel\nHello World!\n");
+    println!("Triad");
+    println!("This is a toy Rust kernel.");
+    println!("This OS was created in the year {}.", 2025);println!();
 
     loop {}
 }
