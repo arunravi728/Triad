@@ -20,7 +20,8 @@ mod print;
 // A by product of not using the standard library, is that we have no panic handlers. The panic
 // handler will never return and this is indicated by returning the never type (!).
 #[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
+fn panic(info: &PanicInfo) -> ! {
+    println!("{}", info);
     loop {}
 }
 
