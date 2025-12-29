@@ -11,3 +11,38 @@ lazy_static! {
         Mutex::new(serial_port)
     };
 }
+
+// Prints to the host through the serial interface, appending a newline.
+#[macro_export]
+macro_rules! serial_println {
+    () => ($crate::serial_print!("\n"));
+    ($fmt:expr) => ($crate::serial_print!(concat!($fmt, "\n")));
+    ($fmt:expr, $($arg:tt)*) => ($crate::serial_print!(
+        concat!($fmt, "\n"), $($arg)*));
+}
+
+// Prints to the host through the serial interface.
+#[macro_export]
+macro_rules! serial_print {
+    ($($arg:tt)*) => {
+        $crate::serial::_serial_print(format_args!($($arg)*));
+    };
+}
+
+#[doc(hidden)]
+pub fn _serial_print(args: ::core::fmt::Arguments) {
+    use core::fmt::Write;
+    SERIAL.lock().write_fmt(args).expect("Printing to serial failed");
+}
+
+#[test_case]
+fn test_serial_println() {
+    serial_println!("Testing serial_println!");
+}
+
+#[test_case]
+fn test_serial_println_many() {
+    for num in 0..200 {
+        serial_println!("Printing statement number: {}", num);
+    }
+}

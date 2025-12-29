@@ -25,7 +25,6 @@
 use core::panic::PanicInfo;
 
 mod vga;
-mod print;
 mod serial;
 
 // This function is called on panic.

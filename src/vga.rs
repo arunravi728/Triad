@@ -28,8 +28,26 @@ lazy_static! {
     pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
         column_position: 0,
         color_code: ColorCode::new(Color::Green, Color::Black),
-        buffer: unsafe { &mut *(VGA_BUFFER_ADDRESS as *mut Buffer) },
+        vga_buffer: unsafe { &mut *(VGA_BUFFER_ADDRESS as *mut Buffer) },
     });
+}
+
+// Prints to the VGA text buffer.
+#[macro_export]
+macro_rules! println {
+    () => ($crate::print!("\n"));
+    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+}
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => ($crate::vga::_print(format_args!($($arg)*)));
+}
+
+#[doc(hidden)]
+pub fn _print(args: fmt::Arguments) {
+    use core::fmt::Write;
+    WRITER.lock().write_fmt(args).unwrap();
 }
 
 #[allow(dead_code)]
@@ -98,7 +116,7 @@ pub struct Writer {
     color_code: ColorCode,
     // Reference to the VGA buffer. We use a static lifetime here to tell the compiler that the VGA
     // buffer reference for the lifetime of the program.
-    buffer: &'static mut Buffer,
+    vga_buffer: &'static mut Buffer,
 }
 
 const NEW_LINE_CHARACTER: u8 = b'\n';
@@ -118,7 +136,7 @@ impl Writer {
             self.new_line();
         }
 
-        self.buffer.chars[BUFFER_HEIGHT - 1][self.column_position].write(Character {
+        self.vga_buffer.chars[BUFFER_HEIGHT - 1][self.column_position].write(Character {
             byte: byte,
             color_code: self.color_code,
         });
@@ -131,8 +149,8 @@ impl Writer {
     fn new_line(&mut self) {
         for row in 1..BUFFER_HEIGHT {
             for column in 0..BUFFER_WIDTH {
-                let character = self.buffer.chars[row][column].read();
-                self.buffer.chars[row - 1][column].write(character);
+                let character = self.vga_buffer.chars[row][column].read();
+                self.vga_buffer.chars[row - 1][column].write(character);
             }
         }
 
@@ -147,7 +165,7 @@ impl Writer {
         };
 
         for column in 0..BUFFER_WIDTH {
-            self.buffer.chars[row][column].write(blank);
+            self.vga_buffer.chars[row][column].write(blank);
         }
     }
 }
@@ -156,5 +174,30 @@ impl fmt::Write for Writer {
     fn write_str(&mut self, message: &str) -> fmt::Result {
         self.write(message);
         Ok(())
+    }
+}
+
+#[test_case]
+fn test_println() {
+    println!("Testing println!");
+}
+
+#[test_case]
+fn test_println_many() {
+    for num in 0..210 {
+        println!("Printing statement number: {}", num);
+    }
+}
+
+#[test_case]
+fn test_vga_buffer_output() {
+    let test_string = "This is a test string";
+    println!("{}", test_string);
+
+    for (i, character) in test_string.chars().enumerate() {
+        // We use BUFFER_HEIGHT - 2 as println! prints to the last available line in the VGA buffer
+        // and then appends a new line.
+        let vga_output: Character = WRITER.lock().vga_buffer.chars[BUFFER_HEIGHT - 2][i].read();
+        assert_eq!(character, char::from(vga_output.byte));
     }
 }
