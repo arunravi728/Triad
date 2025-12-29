@@ -22,8 +22,11 @@ jobs:
       - name: Run Python script
         run: python remove-json-comments.py triad-llvm-target.jsonc
 
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Set up Rust Nightly
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          # Required for custom targets
+          components: rust-src
 
       - name: Rust Cache
         uses: swatinem/rust-cache@v2
