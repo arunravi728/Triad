@@ -16,7 +16,6 @@ pub mod vga;
 pub extern "C" fn _start() -> ! {
     // Calls test_runner()
     run_tests();
-
     loop {}
 }
 
