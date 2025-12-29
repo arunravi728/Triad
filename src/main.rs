@@ -29,12 +29,19 @@ use triad::println;
 // unique name. We do not want the Rust compiler to change the name of the _start function. This is
 // required to let the linker know of the entry point.
 #[no_mangle]
+// The compiler expects the entry point to never return as we have nothing to return to (no
+// underlying OS). We denote this using the never type (!).
+//
+// If we tricked the compiler to return from the entry point, then we would just cause the CPU to
+// execute random bytes that exist in memory immediately after the entry point, causing a crash or
+// unpredictable behavior.
 pub extern "C" fn _start() -> ! {
     println!("Triad");
     println!("This is a toy Rust kernel.");
     println!("This OS was created in the year {}.", 2025);
 
-    // We use Rust's conditional compilation feature here. This function is only called in tests.
+    // We use Rust's conditional compilation feature here. This function is only called in unit
+    // tests part of main.rs.
     #[cfg(test)]
     run_tests();
 
@@ -54,7 +61,7 @@ fn panic(info: &PanicInfo) -> ! {
     loop {}
 }
 
-// Test Panic Handler.
+// This panic handler is called when we run unit tests associated with main.rs.
 #[cfg(test)]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {

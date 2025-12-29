@@ -9,6 +9,8 @@ use core::panic::PanicInfo;
 pub mod serial;
 pub mod vga;
 
+// This entry point is for all unit tests belonging to modules linked to lib.rs. We have a separate
+// entry point in the main function for all unit tests part of main.rs.
 #[cfg(test)]
 #[no_mangle]
 pub extern "C" fn _start() -> ! {

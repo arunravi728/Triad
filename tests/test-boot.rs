@@ -14,12 +14,12 @@ pub extern "C" fn _start() -> ! {
     loop {}
 }
 
-#[test_case]
-fn test_boot() {
-    println!("test_println output");
-}
-
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     test_panic_handler(info);
+}
+
+#[test_case]
+fn test_boot() {
+    println!("test_println output");
 }
