@@ -38,6 +38,9 @@ jobs:
       - name: Install Rustup Components
         run: rustup component add rust-src llvm-tools-preview
 
+      - name: Install Rustup Host Triple
+        run: rustup target add triad-llvm-target
+
       - name: Run `cargo bootimage`
         uses: actions-rs/cargo@v1
         with:
