@@ -34,3 +34,9 @@ test-args = [
 ]
 test-success-exit-code = 33     # (0x10 << 1) | 1
 test-timeout = 300              # (in seconds)
+
+[[test]]
+# We don't need a harness functions for single test case test suites as the test runner is not
+# required. We can directly call the test assertions from the entry point function.
+name = "test-should-panic"
+harness = false
