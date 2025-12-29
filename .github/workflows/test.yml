@@ -32,4 +32,4 @@ jobs:
         uses: swatinem/rust-cache@v2
 
       - name: Run Tests
-        run: cargo test --target triad-llvm-target -Zbuild-std=core,compiler_builtins
+        run: cargo test --target triad-llvm-target.json -Zbuild-std=core,compiler_builtins
