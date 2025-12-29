@@ -1,7 +1,7 @@
-use volatile::Volatile;
+use core::fmt;
 use lazy_static::lazy_static;
 use spin::Mutex;
-use core::fmt;
+use volatile::Volatile;
 
 // The VGA buffer is accessible via memory-mapped I/O to the address 0xb8000.
 static VGA_BUFFER_ADDRESS: usize = 0xb8000;
@@ -183,10 +183,18 @@ fn test_println() {
 }
 
 #[test_case]
-fn test_println_many() {
+fn test_vga_buffer_height() {
     for num in 0..210 {
         println!("Printing statement number: {}", num);
     }
+}
+
+#[test_case]
+fn test_vga_buffer_column_wrap_around() {
+    let mut buffer = [0u8; 150];
+    buffer.fill(b'A');
+    let s = core::str::from_utf8(&buffer).unwrap();
+    println!("{}", s);
 }
 
 #[test_case]

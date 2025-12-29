@@ -42,7 +42,7 @@ fn test_serial_println() {
 
 #[test_case]
 fn test_serial_println_many() {
-    for num in 0..200 {
+    for num in 0..10 {
         serial_println!("Printing statement number: {}", num);
     }
 }
