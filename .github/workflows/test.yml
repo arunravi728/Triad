@@ -31,8 +31,5 @@ jobs:
       - name: Rust Cache
         uses: swatinem/rust-cache@v2
 
-      - name: Add triad host triple
-        run: rustup target add triad-llvm-target
-
       - name: Run Tests
-        run: cargo test
+        run: cargo test --target triad-llvm-target -Zbuild-std=core,compiler_builtins
