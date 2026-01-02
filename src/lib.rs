@@ -8,6 +8,7 @@ use core::panic::PanicInfo;
 
 pub mod serial;
 pub mod vga;
+pub mod interrupts;
 
 // This entry point is for all unit tests belonging to modules linked to lib.rs. We have a separate
 // entry point in the main function for all unit tests part of main.rs.

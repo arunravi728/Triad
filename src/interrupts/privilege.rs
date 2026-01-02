@@ -17,3 +17,15 @@ pub enum KernelRings {
     // access to resources. This is where user-space programs run.
     Ring3 = 3,
 }
+
+impl KernelRings {
+    pub fn new(privilege_level : u16) -> Self {
+        match privilege_level {
+            0 => KernelRings::Ring0,
+            1 => KernelRings::Ring1,
+            2 => KernelRings::Ring2,
+            3 => KernelRings::Ring3,
+            _ => { panic!("Illegal Privilege Level")}
+        }
+    }
+}
