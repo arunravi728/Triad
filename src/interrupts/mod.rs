@@ -1,2 +1,3 @@
 mod idt;
+mod privilege;
 
