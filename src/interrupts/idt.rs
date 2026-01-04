@@ -18,54 +18,12 @@ pub type InterruptHandler = extern "C" fn() -> !;
 #[repr(align(16))]
 pub struct InterruptDescriptorTable {
     pub divide_error_interrupt: IdtEntry,
-    pub debug_exception_interrupt: IdtEntry,
-    pub non_maskable_external_interrupt: IdtEntry,
-    pub breakpoint_interrupt: IdtEntry,
-    pub overflow_interrupt: IdtEntry,
-    pub bound_range_exceeded_interupt: IdtEntry,
-    pub invalid_opcode_interrupt: IdtEntry,
-    pub device_not_available_interrupt: IdtEntry,
-    pub double_fault_interrupt: IdtEntry,
-    pub coprocessor_segment_overrun_interrupt: IdtEntry,
-    pub invalid_tss_interrupt: IdtEntry,
-    pub segment_not_present_interrupt: IdtEntry,
-    pub stack_segment_fault_interrupt: IdtEntry,
-    pub general_protection_interrupt: IdtEntry,
-    pub page_fault_interrupt: IdtEntry,
-    pub reserved1: IdtEntry,
-    pub floating_point_error_interrupt: IdtEntry,
-    pub alignment_check_interrupt: IdtEntry,
-    pub machine_check_interrupt: IdtEntry,
-    pub simd_floating_point_interrupt: IdtEntry,
-    pub virtualization_exception_interrupt: IdtEntry,
-    pub control_protection_exception_interrupt: IdtEntry,
 }
 
 impl InterruptDescriptorTable {
     fn new() -> Self {
         InterruptDescriptorTable {
             divide_error_interrupt: IdtEntry::empty(),
-            debug_exception_interrupt: IdtEntry::empty(),
-            non_maskable_external_interrupt: IdtEntry::empty(),
-            breakpoint_interrupt: IdtEntry::empty(),
-            overflow_interrupt: IdtEntry::empty(),
-            bound_range_exceeded_interupt: IdtEntry::empty(),
-            invalid_opcode_interrupt: IdtEntry::empty(),
-            device_not_available_interrupt: IdtEntry::empty(),
-            double_fault_interrupt: IdtEntry::empty(),
-            coprocessor_segment_overrun_interrupt: IdtEntry::empty(),
-            invalid_tss_interrupt: IdtEntry::empty(),
-            segment_not_present_interrupt: IdtEntry::empty(),
-            stack_segment_fault_interrupt: IdtEntry::empty(),
-            general_protection_interrupt: IdtEntry::empty(),
-            page_fault_interrupt: IdtEntry::empty(),
-            reserved1: IdtEntry::empty(),
-            floating_point_error_interrupt: IdtEntry::empty(),
-            alignment_check_interrupt: IdtEntry::empty(),
-            machine_check_interrupt: IdtEntry::empty(),
-            simd_floating_point_interrupt: IdtEntry::empty(),
-            virtualization_exception_interrupt: IdtEntry::empty(),
-            control_protection_exception_interrupt: IdtEntry::empty(),
         }
     }
 }
