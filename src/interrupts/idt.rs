@@ -105,6 +105,7 @@ pub struct IdtEntry {
     isr_address_low: u16,
 
     // TODO: Implement the SegmentSelector structure when implementing the GDT.
+    // The SegmentSelector must point to a valid Code Segement in the GDT.
     segment_selector: SegmentSelector,
 
     idt_entry_options: IdtEntryOptions,
