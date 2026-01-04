@@ -9,10 +9,66 @@ use crate::interrupts::privilege::KernelRings;
 // their caller and how they return a result). The calling convention used here is the C standard,
 // which is a standard in OS development. This function is never called, rather the hardware jumps
 // to it. A by-product of this is that the function will never return (a diverging function).
-pub type IdtHandler = extern "C" fn() -> !;
+pub type InterruptHandler = extern "C" fn() -> !;
 
+// The various interrupt handlers on x86 machines can be found here -
+// https://wiki.osdev.org/Interrupt_Descriptor_Table#IDT_items
 #[derive(Clone, Debug)]
-pub struct InterruptDescriptorTable {}
+#[repr(C)]
+#[repr(align(16))]
+pub struct InterruptDescriptorTable {
+    pub divide_error_interrupt: IdtEntry,
+    pub debug_exception_interrupt: IdtEntry,
+    pub non_maskable_external_interrupt: IdtEntry,
+    pub breakpoint_interrupt: IdtEntry,
+    pub overflow_interrupt: IdtEntry,
+    pub bound_range_exceeded_interupt: IdtEntry,
+    pub invalid_opcode_interrupt: IdtEntry,
+    pub device_not_available_interrupt: IdtEntry,
+    pub double_fault_interrupt: IdtEntry,
+    pub coprocessor_segment_overrun_interrupt: IdtEntry,
+    pub invalid_tss_interrupt: IdtEntry,
+    pub segment_not_present_interrupt: IdtEntry,
+    pub stack_segment_fault_interrupt: IdtEntry,
+    pub general_protection_interrupt: IdtEntry,
+    pub page_fault_interrupt: IdtEntry,
+    pub reserved1: IdtEntry,
+    pub floating_point_error_interrupt: IdtEntry,
+    pub alignment_check_interrupt: IdtEntry,
+    pub machine_check_interrupt: IdtEntry,
+    pub simd_floating_point_interrupt: IdtEntry,
+    pub virtualization_exception_interrupt: IdtEntry,
+    pub control_protection_exception_interrupt: IdtEntry,
+}
+
+impl InterruptDescriptorTable {
+    fn new() -> Self {
+        InterruptDescriptorTable {
+            divide_error_interrupt: IdtEntry::empty(),
+            debug_exception_interrupt: IdtEntry::empty(),
+            non_maskable_external_interrupt: IdtEntry::empty(),
+            breakpoint_interrupt: IdtEntry::empty(),
+            overflow_interrupt: IdtEntry::empty(),
+            bound_range_exceeded_interupt: IdtEntry::empty(),
+            invalid_opcode_interrupt: IdtEntry::empty(),
+            device_not_available_interrupt: IdtEntry::empty(),
+            double_fault_interrupt: IdtEntry::empty(),
+            coprocessor_segment_overrun_interrupt: IdtEntry::empty(),
+            invalid_tss_interrupt: IdtEntry::empty(),
+            segment_not_present_interrupt: IdtEntry::empty(),
+            stack_segment_fault_interrupt: IdtEntry::empty(),
+            general_protection_interrupt: IdtEntry::empty(),
+            page_fault_interrupt: IdtEntry::empty(),
+            reserved1: IdtEntry::empty(),
+            floating_point_error_interrupt: IdtEntry::empty(),
+            alignment_check_interrupt: IdtEntry::empty(),
+            machine_check_interrupt: IdtEntry::empty(),
+            simd_floating_point_interrupt: IdtEntry::empty(),
+            virtualization_exception_interrupt: IdtEntry::empty(),
+            control_protection_exception_interrupt: IdtEntry::empty(),
+        }
+    }
+}
 
 // The layout of the IdtEntry can be found at -
 // https://wiki.osdev.org/Interrupt_Descriptor_Table#Structure_on_x86-64
@@ -36,7 +92,7 @@ pub struct IdtEntry {
 
 impl IdtEntry {
     // TODO: Implement the SegmentSelector structure when implementing the GDT.
-    fn new(handler: IdtHandler, segement_selector: u16) -> Self {
+    fn new(handler: InterruptHandler, segement_selector: u16) -> Self {
         // The address to the handler is a 64 bit value.
         let isr_address = handler as u64;
         IdtEntry {
@@ -48,6 +104,17 @@ impl IdtEntry {
             idt_entry_options: *IdtEntryOptions::new()
                 .set_present(true)
                 .set_gate_type(GateType::InterruptGateType),
+            reserved: 0,
+        }
+    }
+
+    fn empty() -> Self {
+        IdtEntry {
+            isr_address_low: 0,
+            isr_address_mid: 0,
+            isr_address_high: 0,
+            segment_selector: 0,
+            idt_entry_options: IdtEntryOptions::new(),
             reserved: 0,
         }
     }
@@ -254,8 +321,17 @@ fn test_idt_entry_construction() {
 
     let idt_entry = IdtEntry::new(test_handler, /*segment_selector*/ 42);
     assert_eq!(idt_entry.isr_address_low(), test_handler_address as u16);
-    assert_eq!(idt_entry.isr_address_mid(), (test_handler_address >> 16) as u16);
-    assert_eq!(idt_entry.isr_address_high(), (test_handler_address >> 32) as u32);
+    assert_eq!(
+        idt_entry.isr_address_mid(),
+        (test_handler_address >> 16) as u16
+    );
+    assert_eq!(
+        idt_entry.isr_address_high(),
+        (test_handler_address >> 32) as u32
+    );
     assert_eq!(idt_entry.idt_entry_options().present(), true);
-    assert_eq!(idt_entry.idt_entry_options().gate_type(), GateType::InterruptGateType);
+    assert_eq!(
+        idt_entry.idt_entry_options().gate_type(),
+        GateType::InterruptGateType
+    );
 }
