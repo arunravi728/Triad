@@ -1,5 +1,5 @@
 use bit_field::BitField;
-use core::ops::RangeInclusive;
+use core::ops::{Index, IndexMut, RangeInclusive};
 
 use crate::interrupts::privilege::KernelRings;
 
@@ -20,10 +20,48 @@ pub struct InterruptDescriptorTable {
     pub divide_error_interrupt: IdtEntry,
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[repr(u8)]
+pub enum IdtIndex {
+    DivideErrorIndex = 0,
+}
+
 impl InterruptDescriptorTable {
-    fn new() -> Self {
+    pub fn new() -> Self {
         InterruptDescriptorTable {
             divide_error_interrupt: IdtEntry::empty(),
+        }
+    }
+
+    pub fn add_interrupt_handler(
+        &mut self,
+        interrupt_index: IdtIndex,
+        handler: InterruptHandler,
+    ) -> &mut IdtEntryOptions {
+        // TODO: Pass in the CS segment.
+        self[interrupt_index as u8] = IdtEntry::new(handler, 0);
+        &mut self[interrupt_index as u8].idt_entry_options
+    }
+}
+
+impl Index<u8> for InterruptDescriptorTable {
+    type Output = IdtEntry;
+
+    #[inline]
+    fn index(&self, index: u8) -> &Self::Output {
+        match index {
+            0 => &self.divide_error_interrupt,
+            i => panic!("Unsupported interrupt index {i}"),
+        }
+    }
+}
+
+impl IndexMut<u8> for InterruptDescriptorTable {
+    #[inline]
+    fn index_mut(&mut self, index: u8) -> &mut Self::Output {
+        match index {
+            0 => &mut self.divide_error_interrupt,
+            i => panic!("Unsupported interrupt index {i}"),
         }
     }
 }
@@ -31,7 +69,7 @@ impl InterruptDescriptorTable {
 // The layout of the IdtEntry can be found at -
 // https://wiki.osdev.org/Interrupt_Descriptor_Table#Structure_on_x86-64
 #[derive(Debug, Clone, Copy)]
-#[repr(C, packed)]
+#[repr(C)]
 pub struct IdtEntry {
     // This is a 64 bit address offset split into three 16-bit chunks. It represents the address of
     // the entry point of the Interrupt Service Routine.
@@ -75,26 +113,6 @@ impl IdtEntry {
             idt_entry_options: IdtEntryOptions::new(),
             reserved: 0,
         }
-    }
-
-    #[cfg(test)]
-    fn isr_address_low(&self) -> u16 {
-        self.isr_address_low
-    }
-
-    #[cfg(test)]
-    fn isr_address_mid(&self) -> u16 {
-        self.isr_address_mid
-    }
-
-    #[cfg(test)]
-    fn isr_address_high(&self) -> u32 {
-        self.isr_address_high
-    }
-
-    #[cfg(test)]
-    fn idt_entry_options(&self) -> IdtEntryOptions {
-        self.idt_entry_options
     }
 }
 
@@ -278,18 +296,58 @@ fn test_idt_entry_construction() {
     let test_handler_address = (test_handler as extern "C" fn() -> !) as u64;
 
     let idt_entry = IdtEntry::new(test_handler, /*segment_selector*/ 42);
-    assert_eq!(idt_entry.isr_address_low(), test_handler_address as u16);
+    assert_eq!(idt_entry.isr_address_low, test_handler_address as u16);
     assert_eq!(
-        idt_entry.isr_address_mid(),
+        idt_entry.isr_address_mid,
         (test_handler_address >> 16) as u16
     );
     assert_eq!(
-        idt_entry.isr_address_high(),
+        idt_entry.isr_address_high,
         (test_handler_address >> 32) as u32
     );
-    assert_eq!(idt_entry.idt_entry_options().present(), true);
+    assert_eq!(idt_entry.idt_entry_options.present(), true);
     assert_eq!(
-        idt_entry.idt_entry_options().gate_type(),
+        idt_entry.idt_entry_options.gate_type(),
         GateType::InterruptGateType
+    );
+}
+
+#[test_case]
+fn test_idt_divide_error_setup() {
+    extern "C" fn divide_error_handler() -> ! {
+        crate::println!("DIVIDE ERROR INTERRUPT HANDLER");
+        loop {}
+    }
+
+    let mut idt = InterruptDescriptorTable::new();
+
+    let divide_error_entry_options =
+        idt.add_interrupt_handler(IdtIndex::DivideErrorIndex, divide_error_handler);
+
+    assert_eq!(divide_error_entry_options.present(), true);
+    assert_eq!(
+        divide_error_entry_options.gate_type(),
+        GateType::InterruptGateType
+    );
+
+    divide_error_entry_options.set_descriptor_privilege_level(KernelRings::Ring0);
+    assert_eq!(
+        divide_error_entry_options.descriptor_privilege_level(),
+        KernelRings::Ring0
+    );
+
+    let divide_error_handler_address = (divide_error_handler as extern "C" fn() -> !) as u64;
+
+    assert_eq!(
+        idt[IdtIndex::DivideErrorIndex as u8].isr_address_low,
+        divide_error_handler_address as u16
+    );
+    assert_eq!(
+        idt[IdtIndex::DivideErrorIndex as u8].isr_address_mid,
+        (divide_error_handler_address >> 16) as u16
+    );
+    assert_eq!(
+        idt[IdtIndex::DivideErrorIndex as u8].isr_address_high,
+        (divide_error_handler_address >> 32) as u32
     );
 }
