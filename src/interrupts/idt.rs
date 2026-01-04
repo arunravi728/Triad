@@ -2,7 +2,6 @@ use bit_field::BitField;
 use core::ops::RangeInclusive;
 
 use crate::interrupts::privilege::KernelRings;
-use crate::print::vga;
 
 // This is the interrupt handler type for the IDT. It needs to be a function type with a defined
 // calling convention, as it is directly called by hardware (a calling convention is an
@@ -93,7 +92,7 @@ impl IdtEntryOptions {
     const PRESENT_BIT: usize = 15;
 
     fn new() -> Self {
-        let mut options = IdtEntryOptions(0);
+        let options = IdtEntryOptions(0);
         options
     }
 
@@ -247,10 +246,11 @@ fn test_idt_entry_options_chained_mutation() {
 #[test_case]
 fn test_idt_entry_construction() {
     extern "C" fn test_handler() -> ! {
+        crate::println!("TEST INTERRUPT HANDLER");
         loop {}
     }
 
-    let test_handler_address = test_handler as u64;
+    let test_handler_address = (test_handler as extern "C" fn() -> !) as u64;
 
     let idt_entry = IdtEntry::new(test_handler, /*segment_selector*/ 42);
     assert_eq!(idt_entry.isr_address_low(), test_handler_address as u16);
