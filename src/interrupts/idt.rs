@@ -2,6 +2,15 @@ use bit_field::BitField;
 use core::ops::RangeInclusive;
 
 use crate::interrupts::privilege::KernelRings;
+use crate::print::vga;
+
+// This is the interrupt handler type for the IDT. It needs to be a function type with a defined
+// calling convention, as it is directly called by hardware (a calling convention is an
+// low-level implementation-level scheme for how subroutines or functions receive parameters from
+// their caller and how they return a result). The calling convention used here is the C standard,
+// which is a standard in OS development. This function is never called, rather the hardware jumps
+// to it. A by-product of this is that the function will never return (a diverging function).
+pub type IdtHandler = extern "C" fn() -> !;
 
 #[derive(Clone, Debug)]
 pub struct InterruptDescriptorTable {}
@@ -26,6 +35,45 @@ pub struct IdtEntry {
     reserved: u32,
 }
 
+impl IdtEntry {
+    // TODO: Implement the SegmentSelector structure when implementing the GDT.
+    fn new(handler: IdtHandler, segement_selector: u16) -> Self {
+        // The address to the handler is a 64 bit value.
+        let isr_address = handler as u64;
+        IdtEntry {
+            isr_address_low: isr_address as u16,
+            isr_address_mid: (isr_address >> 16) as u16,
+            isr_address_high: (isr_address >> 32) as u32,
+            segment_selector: segement_selector,
+            // Disables interrupts and marks the descriptor as valid.
+            idt_entry_options: *IdtEntryOptions::new()
+                .set_present(true)
+                .set_gate_type(GateType::InterruptGateType),
+            reserved: 0,
+        }
+    }
+
+    #[cfg(test)]
+    fn isr_address_low(&self) -> u16 {
+        self.isr_address_low
+    }
+
+    #[cfg(test)]
+    fn isr_address_mid(&self) -> u16 {
+        self.isr_address_mid
+    }
+
+    #[cfg(test)]
+    fn isr_address_high(&self) -> u32 {
+        self.isr_address_high
+    }
+
+    #[cfg(test)]
+    fn idt_entry_options(&self) -> IdtEntryOptions {
+        self.idt_entry_options
+    }
+}
+
 // The layout of the IdtEntryOptions can be found at -
 // https://wiki.osdev.org/Interrupt_Descriptor_Table#Structure_on_x86-64
 //
@@ -46,7 +94,6 @@ impl IdtEntryOptions {
 
     fn new() -> Self {
         let mut options = IdtEntryOptions(0);
-        options.set_present(true).set_gate_type(GateType::InterruptGateType);
         options
     }
 
@@ -137,8 +184,7 @@ impl GateType {
 #[test_case]
 fn test_idt_entry_options_construction() {
     let options: IdtEntryOptions = IdtEntryOptions::new();
-    assert_eq!(options.present(), true);
-    assert_eq!(options.gate_type(), GateType::InterruptGateType);
+    assert_eq!(options.present(), false);
 }
 
 #[test_case]
@@ -187,6 +233,7 @@ fn test_idt_entry_options_ist_offset() {
 fn test_idt_entry_options_chained_mutation() {
     let mut options: IdtEntryOptions = IdtEntryOptions::new();
     options
+        .set_present(true)
         .set_descriptor_privilege_level(KernelRings::Ring0)
         .set_gate_type(GateType::InterruptGateType)
         .set_interrupt_stack_table_offset(1);
@@ -195,4 +242,20 @@ fn test_idt_entry_options_chained_mutation() {
     assert_eq!(options.descriptor_privilege_level(), KernelRings::Ring0);
     assert_eq!(options.gate_type(), GateType::InterruptGateType);
     assert_eq!(options.interrupt_stack_table_offset(), 1);
+}
+
+#[test_case]
+fn test_idt_entry_construction() {
+    extern "C" fn test_handler() -> ! {
+        loop {}
+    }
+
+    let test_handler_address = test_handler as u64;
+
+    let idt_entry = IdtEntry::new(test_handler, /*segment_selector*/ 42);
+    assert_eq!(idt_entry.isr_address_low(), test_handler_address as u16);
+    assert_eq!(idt_entry.isr_address_mid(), (test_handler_address >> 16) as u16);
+    assert_eq!(idt_entry.isr_address_high(), (test_handler_address >> 32) as u32);
+    assert_eq!(idt_entry.idt_entry_options().present(), true);
+    assert_eq!(idt_entry.idt_entry_options().gate_type(), GateType::InterruptGateType);
 }
