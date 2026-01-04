@@ -1,6 +1,6 @@
-use uart_16550::SerialPort;
-use spin::Mutex;
 use lazy_static::lazy_static;
+use spin::Mutex;
+use uart_16550::SerialPort;
 
 lazy_static! {
     // UART uses memory-mapped I/O. SerialPort::new expects the address of the first I/O port of the
@@ -32,7 +32,10 @@ macro_rules! serial_print {
 #[doc(hidden)]
 pub fn _serial_print(args: ::core::fmt::Arguments) {
     use core::fmt::Write;
-    SERIAL.lock().write_fmt(args).expect("Printing to serial failed");
+    SERIAL
+        .lock()
+        .write_fmt(args)
+        .expect("Printing to serial failed");
 }
 
 #[test_case]

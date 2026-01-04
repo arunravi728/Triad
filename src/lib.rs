@@ -6,8 +6,8 @@
 
 use core::panic::PanicInfo;
 
-pub mod print;
 pub mod interrupts;
+pub mod print;
 
 // This entry point is for all unit tests belonging to modules linked to lib.rs. We have a separate
 // entry point in the main function for all unit tests part of main.rs.

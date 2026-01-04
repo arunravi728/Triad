@@ -1,7 +1,13 @@
 use bit_field::BitField;
 use core::ops::{Index, IndexMut, RangeInclusive};
+use x86_64::registers::segmentation::Segment;
 
 use crate::interrupts::privilege::KernelRings;
+use core::arch::asm;
+use x86_64::addr::VirtAddr;
+use x86_64::instructions::tables::DescriptorTablePointer;
+pub use x86_64::registers::segmentation::CS;
+use x86_64::structures::gdt::SegmentSelector;
 
 // This is the interrupt handler type for the IDT. It needs to be a function type with a defined
 // calling convention, as it is directly called by hardware (a calling convention is an
@@ -11,6 +17,16 @@ use crate::interrupts::privilege::KernelRings;
 // to it. A by-product of this is that the function will never return (a diverging function).
 pub type InterruptHandler = extern "C" fn() -> !;
 
+// This command helps load an IDT. The commands stores the active IDT and its length. The lidt
+// instruction expects a pointer to a data structure holding the start address of the IDT and its
+// length.
+#[inline]
+pub unsafe fn lidt(idt: &DescriptorTablePointer) {
+    unsafe {
+        asm!("lidt [{}]", in(reg) idt, options(readonly, nostack, preserves_flags));
+    }
+}
+
 // The various interrupt handlers on x86 machines can be found here -
 // https://wiki.osdev.org/Interrupt_Descriptor_Table#IDT_items
 #[derive(Clone, Debug)]
@@ -18,12 +34,6 @@ pub type InterruptHandler = extern "C" fn() -> !;
 #[repr(align(16))]
 pub struct InterruptDescriptorTable {
     pub divide_error_interrupt: IdtEntry,
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-#[repr(u8)]
-pub enum IdtIndex {
-    DivideErrorIndex = 0,
 }
 
 impl InterruptDescriptorTable {
@@ -39,8 +49,21 @@ impl InterruptDescriptorTable {
         handler: InterruptHandler,
     ) -> &mut IdtEntryOptions {
         // TODO: Pass in the CS segment.
-        self[interrupt_index as u8] = IdtEntry::new(handler, 0);
+        self[interrupt_index as u8] = IdtEntry::new(handler, CS::get_reg());
         &mut self[interrupt_index as u8].idt_entry_options
+    }
+
+    // When we load out IDT, we want to ensure that it is valid as long as the kernel runs. Thus, we
+    // use a static lifetime.
+    pub fn load(&'static self) {
+        use core::mem::size_of;
+
+        let ptr = DescriptorTablePointer {
+            base: VirtAddr::new(self as *const _ as u64),
+            limit: (size_of::<Self>() - 1) as u16, // this needs to be the max addressable byte
+        };
+
+        unsafe { lidt(&ptr) };
     }
 }
 
@@ -66,6 +89,12 @@ impl IndexMut<u8> for InterruptDescriptorTable {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[repr(u8)]
+pub enum IdtIndex {
+    DivideErrorIndex = 0,
+}
+
 // The layout of the IdtEntry can be found at -
 // https://wiki.osdev.org/Interrupt_Descriptor_Table#Structure_on_x86-64
 #[derive(Debug, Clone, Copy)]
@@ -76,7 +105,7 @@ pub struct IdtEntry {
     isr_address_low: u16,
 
     // TODO: Implement the SegmentSelector structure when implementing the GDT.
-    segment_selector: u16,
+    segment_selector: SegmentSelector,
 
     idt_entry_options: IdtEntryOptions,
 
@@ -88,7 +117,7 @@ pub struct IdtEntry {
 
 impl IdtEntry {
     // TODO: Implement the SegmentSelector structure when implementing the GDT.
-    fn new(handler: InterruptHandler, segement_selector: u16) -> Self {
+    fn new(handler: InterruptHandler, segement_selector: SegmentSelector) -> Self {
         // The address to the handler is a 64 bit value.
         let isr_address = handler as u64;
         IdtEntry {
@@ -109,7 +138,7 @@ impl IdtEntry {
             isr_address_low: 0,
             isr_address_mid: 0,
             isr_address_high: 0,
-            segment_selector: 0,
+            segment_selector: CS::get_reg(),
             idt_entry_options: IdtEntryOptions::new(),
             reserved: 0,
         }
@@ -139,6 +168,7 @@ impl IdtEntryOptions {
         options
     }
 
+    #[cfg(test)]
     fn value(&self) -> u16 {
         self.0
     }
@@ -295,7 +325,7 @@ fn test_idt_entry_construction() {
 
     let test_handler_address = (test_handler as extern "C" fn() -> !) as u64;
 
-    let idt_entry = IdtEntry::new(test_handler, /*segment_selector*/ 42);
+    let idt_entry = IdtEntry::new(test_handler, /*segment_selector*/ CS::get_reg());
     assert_eq!(idt_entry.isr_address_low, test_handler_address as u16);
     assert_eq!(
         idt_entry.isr_address_mid,

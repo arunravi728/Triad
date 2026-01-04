@@ -2,7 +2,7 @@
 #![no_main]
 
 use core::panic::PanicInfo;
-use triad::{QemuExitCode, exit_qemu, serial_println, serial_print};
+use triad::{exit_qemu, serial_print, serial_println, QemuExitCode};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn _start() -> ! {
@@ -23,9 +23,3 @@ fn should_panic() {
     serial_print!("test_should_panic...");
     assert_eq!(0, 1);
 }
-
-
-
-
-
-
