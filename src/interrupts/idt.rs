@@ -46,7 +46,7 @@ impl IdtEntryOptions {
 
     fn new() -> Self {
         let mut options = IdtEntryOptions(0);
-        options.set_present(true);
+        options.set_present(true).set_gate_type(GateType::InterruptGateType);
         options
     }
 
@@ -138,12 +138,12 @@ impl GateType {
 fn test_idt_entry_options_construction() {
     let options: IdtEntryOptions = IdtEntryOptions::new();
     assert_eq!(options.present(), true);
+    assert_eq!(options.gate_type(), GateType::InterruptGateType);
 }
 
 #[test_case]
 fn test_idt_entry_options_privilege_level() {
     let mut options: IdtEntryOptions = IdtEntryOptions::new();
-    assert_eq!(options.present(), true);
 
     options.set_descriptor_privilege_level(KernelRings::Ring0);
     assert_eq!(options.descriptor_privilege_level(), KernelRings::Ring0);
@@ -161,7 +161,6 @@ fn test_idt_entry_options_privilege_level() {
 #[test_case]
 fn test_idt_entry_options_gate_type() {
     let mut options: IdtEntryOptions = IdtEntryOptions::new();
-    assert_eq!(options.present(), true);
 
     options.set_gate_type(GateType::InterruptGateType);
     assert_eq!(options.gate_type(), GateType::InterruptGateType);
@@ -173,7 +172,6 @@ fn test_idt_entry_options_gate_type() {
 #[test_case]
 fn test_idt_entry_options_ist_offset() {
     let mut options: IdtEntryOptions = IdtEntryOptions::new();
-    assert_eq!(options.present(), true);
 
     options.set_interrupt_stack_table_offset(0);
     assert_eq!(options.interrupt_stack_table_offset(), 0);
