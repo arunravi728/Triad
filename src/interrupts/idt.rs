@@ -1,5 +1,5 @@
 use bit_field::BitField;
-use core::ops::{Index, IndexMut, RangeInclusive};
+use core::ops::RangeInclusive;
 use x86_64::registers::segmentation::Segment;
 
 use crate::interrupts::privilege::KernelRings;
@@ -27,32 +27,45 @@ pub unsafe fn lidt(idt: &DescriptorTablePointer) {
     }
 }
 
-// The various interrupt handlers on x86 machines can be found here -
+// The various interrupt indices on x86 machines can be found here -
 // https://wiki.osdev.org/Interrupt_Descriptor_Table#IDT_items
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[repr(u8)]
+pub enum IdtIndex {
+    DivideErrorInterruptIndex = 0,
+    DebugExceptionInterruptIndex = 1,
+    NmiInterruptIndex = 2,
+    BreakpointInterruptIndex = 3,
+    OverflowInterruptIndex = 4,
+    BoundRangeExceededInterruptIndex = 5,
+    InvalidOpcodeInterruptIndex = 6,
+    DeviceNotAvailableInterruptIndex = 7,
+    DoubleFaultInterruptIndex = 8,
+    CoprocessorSegmentOverrunInterruptIndex = 9,
+    InvalidTssInterruptIndex = 10,
+    SegmentNotPresentInterruptIndex = 11,
+    StackSegmentFaultInterruptIndex = 12,
+    GeneralProtectionInterruptIndex = 13,
+    PageFaultInterruptIndex = 14,
+    ReservedIndex1 = 15,
+    FpuFloatingPointErrorInterruptIndex = 16,
+    AlignmentCheckInterruptIndex = 17,
+    MachineCheckInterruptIndex = 18,
+    SimdFloatingPointExceptionInterruptIndex = 19,
+    VirtualizationExceptionInterruptIndex = 20,
+    ControlProtectionExceptionInterruptIndex = 21,
+}
+
 #[derive(Clone, Debug)]
 #[repr(C)]
 #[repr(align(16))]
-pub struct InterruptDescriptorTable {
-    pub divide_error_interrupt: IdtEntry,
-    pub debug_exception_interrupt: IdtEntry,
-    pub nmi_interrupt: IdtEntry,
-    pub breakpoint_interrupt: IdtEntry,
-    pub overflow_interrupt: IdtEntry,
-    pub bound_range_exceeded_interrupt: IdtEntry,
-    pub invalid_opcode_interrupt: IdtEntry,
-}
+pub struct InterruptDescriptorTable([IdtEntry; 256]);
 
 impl InterruptDescriptorTable {
     pub fn new() -> Self {
-        InterruptDescriptorTable {
-            divide_error_interrupt: IdtEntry::empty(),
-            debug_exception_interrupt: IdtEntry::empty(),
-            nmi_interrupt: IdtEntry::empty(),
-            breakpoint_interrupt: IdtEntry::empty(),
-            overflow_interrupt: IdtEntry::empty(),
-            bound_range_exceeded_interrupt: IdtEntry::empty(),
-            invalid_opcode_interrupt: IdtEntry::empty(),
-        }
+        // Initializes all 256 entries as empty.
+        // This ensures the 'Present' bit is 0 for every entry by default.
+        Self([IdtEntry::empty(); 256])
     }
 
     pub fn add_interrupt_handler(
@@ -60,9 +73,8 @@ impl InterruptDescriptorTable {
         interrupt_index: IdtIndex,
         handler: InterruptHandler,
     ) -> &mut IdtEntryOptions {
-        // TODO: Pass in the CS segment.
-        self[interrupt_index as u8] = IdtEntry::new(handler, CS::get_reg());
-        &mut self[interrupt_index as u8].idt_entry_options
+        self.table()[interrupt_index as usize] = IdtEntry::new(handler, CS::get_reg());
+        &mut self.table()[interrupt_index as usize].idt_entry_options
     }
 
     // When we load out IDT, we want to ensure that it is valid as long as the kernel runs. Thus, we
@@ -77,52 +89,10 @@ impl InterruptDescriptorTable {
 
         unsafe { lidt(&ptr) };
     }
-}
 
-impl Index<u8> for InterruptDescriptorTable {
-    type Output = IdtEntry;
-
-    #[inline]
-    fn index(&self, index: u8) -> &Self::Output {
-        match index {
-            0 => &self.divide_error_interrupt,
-            1 => &self.debug_exception_interrupt,
-            2 => &self.nmi_interrupt,
-            3 => &self.breakpoint_interrupt,
-            4 => &self.overflow_interrupt,
-            5 => &self.bound_range_exceeded_interrupt,
-            6 => &self.invalid_opcode_interrupt,
-            i => panic!("Unsupported interrupt index {i}"),
-        }
+    fn table(&mut self) -> &mut [IdtEntry; 256] {
+        &mut self.0
     }
-}
-
-impl IndexMut<u8> for InterruptDescriptorTable {
-    #[inline]
-    fn index_mut(&mut self, index: u8) -> &mut Self::Output {
-        match index {
-            0 => &mut self.divide_error_interrupt,
-            1 => &mut self.debug_exception_interrupt,
-            2 => &mut self.nmi_interrupt,
-            3 => &mut self.breakpoint_interrupt,
-            4 => &mut self.overflow_interrupt,
-            5 => &mut self.bound_range_exceeded_interrupt,
-            6 => &mut self.invalid_opcode_interrupt,
-            i => panic!("Unsupported interrupt index {i}"),
-        }
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-#[repr(u8)]
-pub enum IdtIndex {
-    DivideErrorInterruptIndex = 0,
-    DebugExceptionInterruptIndex = 1,
-    NmiInterruptIndex = 2,
-    BreakpointInterruptIndex = 3,
-    OverflowInterruptIndex = 4,
-    BoundRangeExceededInterruptIndex = 5,
-    InvalidOpcodeInterruptIndex = 6,
 }
 
 // The layout of the IdtEntry can be found at -
@@ -227,6 +197,8 @@ impl IdtEntryOptions {
         )
     }
 
+    // TODO: Remove #[allow(dead_code)] once function is used.
+    #[allow(dead_code)]
     fn set_descriptor_privilege_level(&mut self, kernel_ring: KernelRings) -> &mut Self {
         self.mut_value().set_bits(
             IdtEntryOptions::DESCRIPTOR_PRIVILEGE_BITS,
@@ -252,6 +224,8 @@ impl IdtEntryOptions {
             .get_bits(IdtEntryOptions::INTERRUPT_STACK_TABLE_OFFSET_BITS)
     }
 
+    // TODO: Remove #[allow(dead_code)] once function is used.
+    #[allow(dead_code)]
     fn set_interrupt_stack_table_offset(&mut self, offset: u8) -> &mut Self {
         if offset > 7 {
             panic!("Interrupt stack table offset is a bit value, cannot be greater than 7.")
@@ -271,6 +245,23 @@ pub enum GateType {
     InterruptGateType = 0x0E,
     TrapGateType = 0x0F,
 }
+
+const _: () = {
+    // Assert that IdtEntryOptions is exactly 2 bytes
+    if core::mem::size_of::<IdtEntryOptions>() != 2 {
+        panic!("IdtEntryOptions has incorrect size");
+    }
+
+    // Assert that IdtEntry is exactly 16 bytes
+    if core::mem::size_of::<IdtEntry>() != 16 {
+        panic!("IdtEntry has incorrect size");
+    }
+
+    // Assert alignment
+    if core::mem::align_of::<InterruptDescriptorTable>() != 16 {
+        panic!("IDT has incorrect alignment");
+    }
+};
 
 impl GateType {
     pub fn new(gate_type: u16) -> Self {
@@ -400,15 +391,15 @@ fn test_idt_divide_error_setup() {
     let divide_error_handler_address = (divide_error_handler as extern "C" fn() -> !) as u64;
 
     assert_eq!(
-        idt[IdtIndex::DivideErrorInterruptIndex as u8].isr_address_low,
+        idt.table()[IdtIndex::DivideErrorInterruptIndex as usize].isr_address_low,
         divide_error_handler_address as u16
     );
     assert_eq!(
-        idt[IdtIndex::DivideErrorInterruptIndex as u8].isr_address_mid,
+        idt.table()[IdtIndex::DivideErrorInterruptIndex as usize].isr_address_mid,
         (divide_error_handler_address >> 16) as u16
     );
     assert_eq!(
-        idt[IdtIndex::DivideErrorInterruptIndex as u8].isr_address_high,
+        idt.table()[IdtIndex::DivideErrorInterruptIndex as usize].isr_address_high,
         (divide_error_handler_address >> 32) as u32
     );
 }
@@ -442,15 +433,15 @@ fn test_idt_invalid_opcode_setup() {
     let invalid_opcode_handler_address = (invalid_opcode_handler as extern "C" fn() -> !) as u64;
 
     assert_eq!(
-        idt[IdtIndex::InvalidOpcodeInterruptIndex as u8].isr_address_low,
+        idt.table()[IdtIndex::InvalidOpcodeInterruptIndex as usize].isr_address_low,
         invalid_opcode_handler_address as u16
     );
     assert_eq!(
-        idt[IdtIndex::InvalidOpcodeInterruptIndex as u8].isr_address_mid,
+        idt.table()[IdtIndex::InvalidOpcodeInterruptIndex as usize].isr_address_mid,
         (invalid_opcode_handler_address >> 16) as u16
     );
     assert_eq!(
-        idt[IdtIndex::InvalidOpcodeInterruptIndex as u8].isr_address_high,
+        idt.table()[IdtIndex::InvalidOpcodeInterruptIndex as usize].isr_address_high,
         (invalid_opcode_handler_address >> 32) as u32
     );
 }

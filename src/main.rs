@@ -61,8 +61,8 @@ pub extern "C" fn _start() -> ! {
     interrupts::init();
 
     // Generate a divide by zero interrupt when not running tests.
-    // #[cfg(not(test))]
-    // generate_divide_by_zero_interrupt();
+    #[cfg(not(test))]
+    generate_divide_by_zero_interrupt();
 
     // Generate an invalid opcode interrupt when not running tests.
     #[cfg(not(test))]
