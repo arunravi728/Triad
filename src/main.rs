@@ -24,7 +24,7 @@ use triad::{interrupts, println};
 
 #[cfg(not(test))]
 fn generate_divide_by_zero_interrupt() {
-unsafe {
+    unsafe {
         core::arch::asm!(
             "mov dx, 0",
             "div dx",
@@ -33,6 +33,13 @@ unsafe {
             options(nomem, nostack)
         );
     }
+}
+
+#[cfg(not(test))]
+fn generate_invalid_opcode_interrupt() {
+    unsafe {
+        core::arch::asm!("ud2");
+    };
 }
 
 // Rust uses name mangling by default. Name mangling is the process of giving every function a
@@ -54,8 +61,12 @@ pub extern "C" fn _start() -> ! {
     interrupts::init();
 
     // Generate a divide by zero interrupt when not running tests.
+    // #[cfg(not(test))]
+    // generate_divide_by_zero_interrupt();
+
+    // Generate an invalid opcode interrupt when not running tests.
     #[cfg(not(test))]
-    generate_divide_by_zero_interrupt();
+    generate_invalid_opcode_interrupt();
 
     // We use Rust's conditional compilation feature here. This function is only called in unit
     // tests part of main.rs.

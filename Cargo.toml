@@ -26,7 +26,6 @@ bench = false
 # This allows QEMU to exit when running tests.
 [package.metadata.bootimage]
 test-args = [
-    "-enable-kvm",
     "-device",
     "isa-debug-exit,iobase=0xf4,iosize=0x04",
     "-serial",

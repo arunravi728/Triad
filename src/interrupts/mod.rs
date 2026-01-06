@@ -27,7 +27,7 @@ macro_rules! handler {
         extern "C" fn wrapper() -> ! {
             core::arch::naked_asm!(
                 "mov rdi, rsp",
-                "sub rsp, 8",
+                "sub rsp, 8", // Required to align the stack
                 "call {}",
                 sym $name,
             );
@@ -39,7 +39,14 @@ macro_rules! handler {
 lazy_static! {
     static ref IDT: idt::InterruptDescriptorTable = {
         let mut idt = idt::InterruptDescriptorTable::new();
-        idt.add_interrupt_handler(IdtIndex::DivideErrorIndex, handler!(divide_error_handler));
+        idt.add_interrupt_handler(
+            IdtIndex::DivideErrorInterruptIndex,
+            handler!(divide_error_handler),
+        );
+        idt.add_interrupt_handler(
+            IdtIndex::InvalidOpcodeInterruptIndex,
+            handler!(invalid_opcode_handler),
+        );
 
         idt
     };
@@ -51,5 +58,10 @@ pub fn init() {
 
 extern "C" fn divide_error_handler(stack_frame: &ExceptionStackFrame) -> ! {
     crate::println!("\nEXCEPTION: DIVIDE BY ZERO\n{:#?}", &*stack_frame);
+    loop {}
+}
+
+extern "C" fn invalid_opcode_handler(stack_frame: &ExceptionStackFrame) -> ! {
+    crate::println!("\nEXCEPTION: INVALID OPCODE\n{:#?}", &*stack_frame);
     loop {}
 }

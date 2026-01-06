@@ -34,12 +34,24 @@ pub unsafe fn lidt(idt: &DescriptorTablePointer) {
 #[repr(align(16))]
 pub struct InterruptDescriptorTable {
     pub divide_error_interrupt: IdtEntry,
+    pub debug_exception_interrupt: IdtEntry,
+    pub nmi_interrupt: IdtEntry,
+    pub breakpoint_interrupt: IdtEntry,
+    pub overflow_interrupt: IdtEntry,
+    pub bound_range_exceeded_interrupt: IdtEntry,
+    pub invalid_opcode_interrupt: IdtEntry,
 }
 
 impl InterruptDescriptorTable {
     pub fn new() -> Self {
         InterruptDescriptorTable {
             divide_error_interrupt: IdtEntry::empty(),
+            debug_exception_interrupt: IdtEntry::empty(),
+            nmi_interrupt: IdtEntry::empty(),
+            breakpoint_interrupt: IdtEntry::empty(),
+            overflow_interrupt: IdtEntry::empty(),
+            bound_range_exceeded_interrupt: IdtEntry::empty(),
+            invalid_opcode_interrupt: IdtEntry::empty(),
         }
     }
 
@@ -74,6 +86,12 @@ impl Index<u8> for InterruptDescriptorTable {
     fn index(&self, index: u8) -> &Self::Output {
         match index {
             0 => &self.divide_error_interrupt,
+            1 => &self.debug_exception_interrupt,
+            2 => &self.nmi_interrupt,
+            3 => &self.breakpoint_interrupt,
+            4 => &self.overflow_interrupt,
+            5 => &self.bound_range_exceeded_interrupt,
+            6 => &self.invalid_opcode_interrupt,
             i => panic!("Unsupported interrupt index {i}"),
         }
     }
@@ -84,6 +102,12 @@ impl IndexMut<u8> for InterruptDescriptorTable {
     fn index_mut(&mut self, index: u8) -> &mut Self::Output {
         match index {
             0 => &mut self.divide_error_interrupt,
+            1 => &mut self.debug_exception_interrupt,
+            2 => &mut self.nmi_interrupt,
+            3 => &mut self.breakpoint_interrupt,
+            4 => &mut self.overflow_interrupt,
+            5 => &mut self.bound_range_exceeded_interrupt,
+            6 => &mut self.invalid_opcode_interrupt,
             i => panic!("Unsupported interrupt index {i}"),
         }
     }
@@ -92,7 +116,13 @@ impl IndexMut<u8> for InterruptDescriptorTable {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(u8)]
 pub enum IdtIndex {
-    DivideErrorIndex = 0,
+    DivideErrorInterruptIndex = 0,
+    DebugExceptionInterruptIndex = 1,
+    NmiInterruptIndex = 2,
+    BreakpointInterruptIndex = 3,
+    OverflowInterruptIndex = 4,
+    BoundRangeExceededInterruptIndex = 5,
+    InvalidOpcodeInterruptIndex = 6,
 }
 
 // The layout of the IdtEntry can be found at -
@@ -353,7 +383,7 @@ fn test_idt_divide_error_setup() {
     let mut idt = InterruptDescriptorTable::new();
 
     let divide_error_entry_options =
-        idt.add_interrupt_handler(IdtIndex::DivideErrorIndex, divide_error_handler);
+        idt.add_interrupt_handler(IdtIndex::DivideErrorInterruptIndex, divide_error_handler);
 
     assert_eq!(divide_error_entry_options.present(), true);
     assert_eq!(
@@ -370,15 +400,57 @@ fn test_idt_divide_error_setup() {
     let divide_error_handler_address = (divide_error_handler as extern "C" fn() -> !) as u64;
 
     assert_eq!(
-        idt[IdtIndex::DivideErrorIndex as u8].isr_address_low,
+        idt[IdtIndex::DivideErrorInterruptIndex as u8].isr_address_low,
         divide_error_handler_address as u16
     );
     assert_eq!(
-        idt[IdtIndex::DivideErrorIndex as u8].isr_address_mid,
+        idt[IdtIndex::DivideErrorInterruptIndex as u8].isr_address_mid,
         (divide_error_handler_address >> 16) as u16
     );
     assert_eq!(
-        idt[IdtIndex::DivideErrorIndex as u8].isr_address_high,
+        idt[IdtIndex::DivideErrorInterruptIndex as u8].isr_address_high,
         (divide_error_handler_address >> 32) as u32
+    );
+}
+
+#[test_case]
+fn test_idt_invalid_opcode_setup() {
+    extern "C" fn invalid_opcode_handler() -> ! {
+        crate::println!("INVALID OPCODE INTERRUPT HANDLER");
+        loop {}
+    }
+
+    let mut idt = InterruptDescriptorTable::new();
+
+    let invalid_opcode_entry_options = idt.add_interrupt_handler(
+        IdtIndex::InvalidOpcodeInterruptIndex,
+        invalid_opcode_handler,
+    );
+
+    assert_eq!(invalid_opcode_entry_options.present(), true);
+    assert_eq!(
+        invalid_opcode_entry_options.gate_type(),
+        GateType::InterruptGateType
+    );
+
+    invalid_opcode_entry_options.set_descriptor_privilege_level(KernelRings::Ring0);
+    assert_eq!(
+        invalid_opcode_entry_options.descriptor_privilege_level(),
+        KernelRings::Ring0
+    );
+
+    let invalid_opcode_handler_address = (invalid_opcode_handler as extern "C" fn() -> !) as u64;
+
+    assert_eq!(
+        idt[IdtIndex::InvalidOpcodeInterruptIndex as u8].isr_address_low,
+        invalid_opcode_handler_address as u16
+    );
+    assert_eq!(
+        idt[IdtIndex::InvalidOpcodeInterruptIndex as u8].isr_address_mid,
+        (invalid_opcode_handler_address >> 16) as u16
+    );
+    assert_eq!(
+        idt[IdtIndex::InvalidOpcodeInterruptIndex as u8].isr_address_high,
+        (invalid_opcode_handler_address >> 32) as u32
     );
 }
