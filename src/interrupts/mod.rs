@@ -27,9 +27,11 @@ macro_rules! handler {
         extern "C" fn wrapper() -> ! {
             core::arch::naked_asm!(
                 "mov rdi, rsp",
-                "sub rsp, 8", // Required to align the stack
-                "call {}",
-                sym $name,
+                "sub rsp, 8",           // Required to align the stack
+                "call {handler_fn}",    // Call the actual logic
+                "add rsp, 8",           // Restore stack
+                "iretq",                // Interrupt return
+                handler_fn = sym $name,
             );
         }
         wrapper
@@ -72,7 +74,7 @@ extern "C" fn invalid_opcode_handler(stack_frame: &ExceptionStackFrame) -> ! {
     loop {}
 }
 
-extern "C" fn breakpoint_interrupt_handler(stack_frame: &ExceptionStackFrame) -> ! {
+// We can use iretq to return from an interrupt handler.
+extern "C" fn breakpoint_interrupt_handler(stack_frame: &ExceptionStackFrame) {
     crate::println!("\nEXCEPTION: BREAKPOINT\n{:#?}", &*stack_frame);
-    loop{}
 }
