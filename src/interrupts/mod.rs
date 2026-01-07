@@ -43,9 +43,15 @@ lazy_static! {
             IdtIndex::DivideErrorInterruptIndex,
             handler!(divide_error_handler),
         );
+
         idt.add_interrupt_handler(
             IdtIndex::InvalidOpcodeInterruptIndex,
             handler!(invalid_opcode_handler),
+        );
+
+        idt.add_interrupt_handler(
+            IdtIndex::BreakpointInterruptIndex,
+            handler!(breakpoint_interrupt_handler),
         );
 
         idt
@@ -64,4 +70,9 @@ extern "C" fn divide_error_handler(stack_frame: &ExceptionStackFrame) -> ! {
 extern "C" fn invalid_opcode_handler(stack_frame: &ExceptionStackFrame) -> ! {
     crate::println!("\nEXCEPTION: INVALID OPCODE\n{:#?}", &*stack_frame);
     loop {}
+}
+
+extern "C" fn breakpoint_interrupt_handler(stack_frame: &ExceptionStackFrame) -> ! {
+    crate::println!("\nEXCEPTION: BREAKPOINT\n{:#?}", &*stack_frame);
+    loop{}
 }

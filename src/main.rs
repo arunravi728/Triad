@@ -42,6 +42,11 @@ fn generate_invalid_opcode_interrupt() {
     };
 }
 
+#[cfg(not(test))]
+fn generate_breakpoint() {
+    unsafe { core::arch::asm!("int3", options(nomem, nostack)); };
+}
+
 // Rust uses name mangling by default. Name mangling is the process of giving every function a
 // unique name. We do not want the Rust compiler to change the name of the _start function. This is
 // required to let the linker know of the entry point.
@@ -60,13 +65,9 @@ pub extern "C" fn _start() -> ! {
     // Initialize interrupt handlers and load the IDT.
     interrupts::init();
 
-    // Generate a divide by zero interrupt when not running tests.
+    // Generate a breakpoint interrupt when not running tests.
     #[cfg(not(test))]
-    generate_divide_by_zero_interrupt();
-
-    // Generate an invalid opcode interrupt when not running tests.
-    #[cfg(not(test))]
-    generate_invalid_opcode_interrupt();
+    generate_breakpoint();
 
     // We use Rust's conditional compilation feature here. This function is only called in unit
     // tests part of main.rs.

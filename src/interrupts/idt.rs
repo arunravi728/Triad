@@ -445,3 +445,46 @@ fn test_idt_invalid_opcode_setup() {
         (invalid_opcode_handler_address >> 32) as u32
     );
 }
+
+#[test_case]
+fn test_idt_breakpoint_setup() {
+    extern "C" fn breakpoint_handler() -> ! {
+        crate::println!("BREAKPOINT INTERRUPT HANDLER");
+        loop {}
+    }
+
+    let mut idt = InterruptDescriptorTable::new();
+
+    let breakpoint_entry_options = idt.add_interrupt_handler(
+        IdtIndex::BreakpointInterruptIndex,
+        breakpoint_handler,
+    );
+
+    assert_eq!(breakpoint_entry_options.present(), true);
+    assert_eq!(
+        breakpoint_entry_options.gate_type(),
+        GateType::InterruptGateType
+    );
+
+    breakpoint_entry_options.set_descriptor_privilege_level(KernelRings::Ring0);
+    assert_eq!(
+        breakpoint_entry_options.descriptor_privilege_level(),
+        KernelRings::Ring0
+    );
+
+    let breakpoint_handler_address = (breakpoint_handler as extern "C" fn() -> !) as u64;
+
+    assert_eq!(
+        idt.table()[IdtIndex::BreakpointInterruptIndex as usize].isr_address_low,
+        breakpoint_handler_address as u16
+    );
+    assert_eq!(
+        idt.table()[IdtIndex::BreakpointInterruptIndex as usize].isr_address_mid,
+        (breakpoint_handler_address >> 16) as u16
+    );
+    assert_eq!(
+        idt.table()[IdtIndex::BreakpointInterruptIndex as usize].isr_address_high,
+        (breakpoint_handler_address >> 32) as u32
+    );
+}
+
