@@ -26,11 +26,43 @@ macro_rules! handler {
         #[unsafe(naked)]
         extern "C" fn wrapper() -> ! {
             core::arch::naked_asm!(
+                // 1. Save state of all mutable registers before interrupt handler call.
+                // We need to do this to not get a page fault when the ISR returns.
+                "push rax",
+                "push rcx",
+                "push rdx",
+                "push rsi",
+                "push rdi",
+                "push r8",
+                "push r9",
+                "push r10",
+                "push r11",
+
+                // 2. Calculate pointer to ExceptionStackFrame
+                // The frame is pushed by the CPU before the pushes above.
+                // 9 registers were pushed (9 * 8 bytes = 72).
                 "mov rdi, rsp",
-                "sub rsp, 8",           // Required to align the stack
-                "call {handler_fn}",    // Call the actual logic
-                "add rsp, 8",           // Restore stack
-                "iretq",                // Interrupt return
+                "add rdi, 72", 
+
+                // 3. Align stack to 16-bytes - x86_64 ABI requires 16-byte alignment before calls.
+                "sub rsp, 8",
+                "call {handler_fn}",
+                "add rsp, 8",
+
+                // 4. Restore state before returning from the ISR. This will allow the return
+                // address to properly populated and will prevent page faults on program resumption.
+                "pop r11",
+                "pop r10",
+                "pop r9",
+                "pop r8",
+                "pop rdi",
+                "pop rsi",
+                "pop rdx",
+                "pop rcx",
+                "pop rax",
+
+                // 5. Interrupt Return
+                "iretq",
                 handler_fn = sym $name,
             );
         }
