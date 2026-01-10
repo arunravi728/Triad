@@ -488,3 +488,45 @@ fn test_idt_breakpoint_setup() {
     );
 }
 
+#[test_case]
+fn test_idt_double_fault_setup() {
+    extern "C" fn double_fault_handler() -> ! {
+        crate::println!("DOUBLE FAULT INTERRUPT HANDLER");
+        loop {}
+    }
+
+    let mut idt = InterruptDescriptorTable::new();
+
+    let double_fault_entry_options = idt.add_interrupt_handler(
+        IdtIndex::DoubleFaultInterruptIndex,
+        double_fault_handler,
+    );
+
+    assert_eq!(double_fault_entry_options.present(), true);
+    assert_eq!(
+        double_fault_entry_options.gate_type(),
+        GateType::InterruptGateType
+    );
+
+    double_fault_entry_options.set_descriptor_privilege_level(KernelRings::Ring0);
+    assert_eq!(
+        double_fault_entry_options.descriptor_privilege_level(),
+        KernelRings::Ring0
+    );
+
+    let double_fault_handler_address = (double_fault_handler as extern "C" fn() -> !) as u64;
+
+    assert_eq!(
+        idt.table()[IdtIndex::DoubleFaultInterruptIndex as usize].isr_address_low,
+        double_fault_handler_address as u16
+    );
+    assert_eq!(
+        idt.table()[IdtIndex::DoubleFaultInterruptIndex as usize].isr_address_mid,
+        (double_fault_handler_address >> 16) as u16
+    );
+    assert_eq!(
+        idt.table()[IdtIndex::DoubleFaultInterruptIndex as usize].isr_address_high,
+        (double_fault_handler_address >> 32) as u32
+    );
+}
+
