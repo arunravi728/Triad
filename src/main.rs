@@ -76,16 +76,8 @@ pub extern "C" fn _start() -> ! {
     #[cfg(not(test))]
     generate_breakpoint();
 
-    // Generate an invalid opcode interrupt when not running tests.
-    // #[cfg(not(test))]
-    // generate_invalid_opcode_interrupt();
-
     #[cfg(not(test))]
     generate_page_fault();
-
-    // Generate a divide by zero interrupt when not running tests.
-    #[cfg(not(test))]
-    generate_divide_by_zero_interrupt();
 
     // We use Rust's conditional compilation feature here. This function is only called in unit
     // tests part of main.rs.

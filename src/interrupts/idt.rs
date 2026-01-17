@@ -1,12 +1,13 @@
 use bit_field::BitField;
 use core::ops::RangeInclusive;
-use x86_64::registers::segmentation::Segment;
-
 use crate::interrupts::privilege::KernelRings;
 use core::arch::asm;
+
+// TODO: Implement your own structures once paging has been implemented.
 use x86_64::addr::VirtAddr;
-use x86_64::instructions::tables::DescriptorTablePointer;
 pub use x86_64::registers::segmentation::CS;
+use x86_64::registers::segmentation::Segment;
+use x86_64::instructions::tables::DescriptorTablePointer;
 use x86_64::structures::gdt::SegmentSelector;
 
 // This is the interrupt handler type for the IDT. It needs to be a function type with a defined

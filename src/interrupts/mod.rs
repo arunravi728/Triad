@@ -2,17 +2,20 @@ use lazy_static::lazy_static;
 
 use crate::interrupts::idt::IdtIndex;
 
+use x86_64::addr::VirtAddr;
+use x86_64::structures::gdt::SegmentSelector;
+
 pub mod idt;
 pub mod privilege;
 
 #[derive(Debug)]
 #[repr(C)]
 struct ExceptionStackFrame {
-    instruction_pointer: u64,
-    code_segment: u64,
+    instruction_pointer: VirtAddr,
+    code_segment: SegmentSelector,
     cpu_flags: u64,
-    stack_pointer: u64,
-    stack_segment: u64,
+    stack_pointer: VirtAddr,
+    stack_segment: SegmentSelector,
 }
 
 // The function prologue is a few lines of code at the beginning of a function, which prepare the
