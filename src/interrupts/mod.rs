@@ -7,6 +7,7 @@ use x86_64::structures::gdt::SegmentSelector;
 
 pub mod idt;
 pub mod privilege;
+pub mod tss;
 
 #[derive(Debug)]
 #[repr(C)]
