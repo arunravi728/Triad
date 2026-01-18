@@ -22,6 +22,7 @@
 use core::panic::PanicInfo;
 use triad::{interrupts, println};
 
+#[allow(dead_code)]
 #[cfg(not(test))]
 fn generate_divide_by_zero_interrupt() {
     unsafe {
@@ -35,6 +36,7 @@ fn generate_divide_by_zero_interrupt() {
     }
 }
 
+#[allow(dead_code)]
 #[cfg(not(test))]
 fn generate_invalid_opcode_interrupt() {
     unsafe {
@@ -42,11 +44,15 @@ fn generate_invalid_opcode_interrupt() {
     };
 }
 
+#[allow(dead_code)]
 #[cfg(not(test))]
 fn generate_breakpoint() {
-    unsafe { core::arch::asm!("int3", options(nomem, nostack)); };
+    unsafe {
+        core::arch::asm!("int3", options(nomem, nostack));
+    };
 }
 
+#[allow(dead_code)]
 #[cfg(not(test))]
 fn generate_page_fault() {
     unsafe {
@@ -69,7 +75,6 @@ pub extern "C" fn _start() -> ! {
     println!("This is a toy Rust kernel.");
     println!("This OS was created in the year {}.", 2025);
 
-    // Initialize interrupt handlers and load the IDT.
     interrupts::init();
 
     // Generate a breakpoint interrupt when not running tests.

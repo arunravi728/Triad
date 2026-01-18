@@ -1,13 +1,13 @@
-use bit_field::BitField;
-use core::ops::RangeInclusive;
 use crate::interrupts::privilege::KernelRings;
+use bit_field::BitField;
 use core::arch::asm;
+use core::ops::RangeInclusive;
 
 // TODO: Implement your own structures once paging has been implemented.
 use x86_64::addr::VirtAddr;
-pub use x86_64::registers::segmentation::CS;
-use x86_64::registers::segmentation::Segment;
 use x86_64::instructions::tables::DescriptorTablePointer;
+use x86_64::registers::segmentation::Segment;
+pub use x86_64::registers::segmentation::CS;
 use x86_64::structures::gdt::SegmentSelector;
 
 // This is the interrupt handler type for the IDT. It needs to be a function type with a defined
@@ -456,10 +456,8 @@ fn test_idt_breakpoint_setup() {
 
     let mut idt = InterruptDescriptorTable::new();
 
-    let breakpoint_entry_options = idt.add_interrupt_handler(
-        IdtIndex::BreakpointInterruptIndex,
-        breakpoint_handler,
-    );
+    let breakpoint_entry_options =
+        idt.add_interrupt_handler(IdtIndex::BreakpointInterruptIndex, breakpoint_handler);
 
     assert_eq!(breakpoint_entry_options.present(), true);
     assert_eq!(
@@ -498,10 +496,8 @@ fn test_idt_double_fault_setup() {
 
     let mut idt = InterruptDescriptorTable::new();
 
-    let double_fault_entry_options = idt.add_interrupt_handler(
-        IdtIndex::DoubleFaultInterruptIndex,
-        double_fault_handler,
-    );
+    let double_fault_entry_options =
+        idt.add_interrupt_handler(IdtIndex::DoubleFaultInterruptIndex, double_fault_handler);
 
     assert_eq!(double_fault_entry_options.present(), true);
     assert_eq!(
@@ -530,4 +526,3 @@ fn test_idt_double_fault_setup() {
         (double_fault_handler_address >> 32) as u32
     );
 }
-

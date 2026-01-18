@@ -5,6 +5,7 @@ use crate::interrupts::idt::IdtIndex;
 use x86_64::addr::VirtAddr;
 use x86_64::structures::gdt::SegmentSelector;
 
+pub mod gdt;
 pub mod idt;
 pub mod privilege;
 pub mod tss;
