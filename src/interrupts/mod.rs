@@ -158,7 +158,7 @@ lazy_static! {
             IdtIndex::DoubleFaultInterruptIndex,
             handler_with_error_code!(double_fault_interrupt_handler),
         )
-        .set_interrupt_stack_table_offset(DOUBLE_FAULT_IST_INDEX as u8);
+        .set_interrupt_stack_table_offset((DOUBLE_FAULT_IST_INDEX + 1) as u8);
 
         idt
     };

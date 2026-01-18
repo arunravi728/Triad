@@ -20,7 +20,7 @@ pub unsafe fn load_tss(sel: SegmentSelector) {
 // 1. The Interrupt Stack Table (IST)
 // 2. The Privileged Stack Table (PST)
 #[derive(Debug, Clone, Copy)]
-#[repr(C, packed(4))]
+#[repr(C, packed)]
 pub struct TaskStateSegment {
     reserved_1: u32,
 
