@@ -1,23 +1,15 @@
-use lazy_static::lazy_static;
 use x86_64::addr::VirtAddr;
 
-pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
+use core::arch::asm;
 
-lazy_static! {
-    static ref TSS: TaskStateSegment = {
-        let mut tss = TaskStateSegment::new();
-        tss.interrupt_stack_table[DOUBLE_FAULT_IST_INDEX as usize] = {
-            const STACK_SIZE: usize = 4096 * 5;
-            // This needs to be a static mut. If this was immutable, the bootloader would make it
-            // a read only page.
-            static mut STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
+use crate::interrupts::segment::SegmentSelector;
 
-            let stack_start = VirtAddr::from_ptr(&raw const STACK);
-            let stack_end = stack_start + STACK_SIZE;
-            stack_end
-        };
-        tss
-    };
+// Load the task state register using the `ltr` instruction.
+#[inline]
+pub unsafe fn load_tss(sel: SegmentSelector) {
+    unsafe {
+        asm!("ltr {0:x}", in(reg) sel.0, options(nostack, preserves_flags));
+    }
 }
 
 // The Interrupt Stack Table (IST) is part of the legacy Task State Segment (TSS).

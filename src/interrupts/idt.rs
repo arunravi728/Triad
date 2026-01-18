@@ -1,4 +1,6 @@
 use crate::interrupts::privilege::KernelRings;
+use crate::interrupts::segment::{Segment, SegmentSelector, CS};
+
 use bit_field::BitField;
 use core::arch::asm;
 use core::ops::RangeInclusive;
@@ -6,9 +8,6 @@ use core::ops::RangeInclusive;
 // TODO: Implement your own structures once paging has been implemented.
 use x86_64::addr::VirtAddr;
 use x86_64::instructions::tables::DescriptorTablePointer;
-use x86_64::registers::segmentation::Segment;
-pub use x86_64::registers::segmentation::CS;
-use x86_64::structures::gdt::SegmentSelector;
 
 // This is the interrupt handler type for the IDT. It needs to be a function type with a defined
 // calling convention, as it is directly called by hardware (a calling convention is an
@@ -74,7 +73,7 @@ impl InterruptDescriptorTable {
         interrupt_index: IdtIndex,
         handler: InterruptHandler,
     ) -> &mut IdtEntryOptions {
-        self.table()[interrupt_index as usize] = IdtEntry::new(handler, CS::get_reg());
+        self.table()[interrupt_index as usize] = IdtEntry::new(handler, CS::reg());
         &mut self.table()[interrupt_index as usize].idt_entry_options
     }
 
@@ -105,7 +104,6 @@ pub struct IdtEntry {
     // the entry point of the Interrupt Service Routine.
     isr_address_low: u16,
 
-    // TODO: Implement the SegmentSelector structure when implementing the GDT.
     // The SegmentSelector must point to a valid Code Segement in the GDT.
     segment_selector: SegmentSelector,
 
@@ -118,7 +116,6 @@ pub struct IdtEntry {
 }
 
 impl IdtEntry {
-    // TODO: Implement the SegmentSelector structure when implementing the GDT.
     fn new(handler: InterruptHandler, segement_selector: SegmentSelector) -> Self {
         // The address to the handler is a 64 bit value.
         let isr_address = handler as u64;
@@ -140,7 +137,7 @@ impl IdtEntry {
             isr_address_low: 0,
             isr_address_mid: 0,
             isr_address_high: 0,
-            segment_selector: CS::get_reg(),
+            segment_selector: CS::reg(),
             idt_entry_options: IdtEntryOptions::new(),
             reserved: 0,
         }
@@ -225,9 +222,7 @@ impl IdtEntryOptions {
             .get_bits(IdtEntryOptions::INTERRUPT_STACK_TABLE_OFFSET_BITS)
     }
 
-    // TODO: Remove #[allow(dead_code)] once function is used.
-    #[allow(dead_code)]
-    fn set_interrupt_stack_table_offset(&mut self, offset: u8) -> &mut Self {
+    pub fn set_interrupt_stack_table_offset(&mut self, offset: u8) -> &mut Self {
         if offset > 7 {
             panic!("Interrupt stack table offset is a bit value, cannot be greater than 7.")
         }
@@ -348,7 +343,7 @@ fn test_idt_entry_construction() {
 
     let test_handler_address = (test_handler as extern "C" fn() -> !) as u64;
 
-    let idt_entry = IdtEntry::new(test_handler, /*segment_selector*/ CS::get_reg());
+    let idt_entry = IdtEntry::new(test_handler, /*segment_selector*/ CS::reg());
     assert_eq!(idt_entry.isr_address_low, test_handler_address as u16);
     assert_eq!(
         idt_entry.isr_address_mid,

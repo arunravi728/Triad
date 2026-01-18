@@ -1,13 +1,15 @@
 use lazy_static::lazy_static;
 
 use crate::interrupts::idt::IdtIndex;
+use crate::interrupts::segment::{Segment, SegmentSelector, CS};
+use crate::interrupts::tss::load_tss;
 
 use x86_64::addr::VirtAddr;
-use x86_64::structures::gdt::SegmentSelector;
 
 pub mod gdt;
 pub mod idt;
 pub mod privilege;
+pub mod segment;
 pub mod tss;
 
 #[derive(Debug)]
@@ -149,16 +151,77 @@ lazy_static! {
             handler!(breakpoint_interrupt_handler),
         );
 
+        // As soon as our TSS is loaded, the CPU has access to a valid interrupt stack table (IST).
+        // Then we can tell the CPU that it should use our new double fault stack by modifying our
+        // double fault IDT entry.
         idt.add_interrupt_handler(
             IdtIndex::DoubleFaultInterruptIndex,
             handler_with_error_code!(double_fault_interrupt_handler),
-        );
+        )
+        .set_interrupt_stack_table_offset(DOUBLE_FAULT_IST_INDEX as u8);
 
         idt
     };
 }
 
+struct Selectors {
+    code_selector: SegmentSelector,
+    tss_selector: SegmentSelector,
+}
+
+struct GdtContainer {
+    table: gdt::GlobalDescriptorTable,
+    selectors: Selectors,
+}
+
+lazy_static! {
+    static ref GDT: GdtContainer = {
+        let mut gdt = gdt::GlobalDescriptorTable::new();
+        let code_selector = gdt.add(gdt::Descriptor::kernel_code_segment());
+        let tss_selector = gdt.add(gdt::Descriptor::tss_segment(&TSS));
+
+        GdtContainer {
+            table: gdt,
+            selectors: Selectors {
+                code_selector,
+                tss_selector,
+            },
+        }
+    };
+}
+
+pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
+
+lazy_static! {
+    static ref TSS: tss::TaskStateSegment = {
+        let mut tss = tss::TaskStateSegment::new();
+        tss.interrupt_stack_table[DOUBLE_FAULT_IST_INDEX as usize] = {
+            const STACK_SIZE: usize = 4096 * 5;
+            // This needs to be a static mut. If this was immutable, the bootloader would make it
+            // a read only page.
+            static mut STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
+
+            let stack_start = VirtAddr::from_ptr(&raw const STACK);
+            let stack_end = stack_start + STACK_SIZE;
+            stack_end
+        };
+        tss
+    };
+}
+
 pub fn init() {
+    GDT.table.load();
+
+    unsafe {
+        // We changed our GDT, so we should reload the code segment register. This is required
+        // since the old segment selector could now point to a different GDT descriptor.
+        CS::set_reg(GDT.selectors.code_selector);
+
+        // We loaded a GDT that contains a TSS selector, but we still need to tell the CPU that it
+        // should use that TSS.
+        load_tss(GDT.selectors.tss_selector);
+    }
+
     IDT.load();
 }
 

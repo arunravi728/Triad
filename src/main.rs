@@ -77,12 +77,12 @@ pub extern "C" fn _start() -> ! {
 
     interrupts::init();
 
-    // Generate a breakpoint interrupt when not running tests.
-    #[cfg(not(test))]
-    generate_breakpoint();
+    fn stack_overflow() {
+        stack_overflow(); // for each recursion, the return address is pushed
+    }
 
-    #[cfg(not(test))]
-    generate_page_fault();
+    // trigger a stack overflow
+    stack_overflow();
 
     // We use Rust's conditional compilation feature here. This function is only called in unit
     // tests part of main.rs.

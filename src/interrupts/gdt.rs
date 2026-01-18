@@ -1,5 +1,22 @@
+use crate::interrupts::privilege::KernelRings;
+use crate::interrupts::segment::SegmentSelector;
 use crate::interrupts::tss::TaskStateSegment;
+
 use bitflags::bitflags;
+use core::arch::asm;
+
+use x86_64::addr::VirtAddr;
+use x86_64::instructions::tables::DescriptorTablePointer;
+
+// This command helps load an GDT. The commands stores the active GDT and its length. The lgdt
+// instruction expects a pointer to a data structure holding the start address of the GDT and its
+// length.
+#[inline]
+pub unsafe fn lgdt(gdt: &DescriptorTablePointer) {
+    unsafe {
+        asm!("lgdt [{}]", in(reg) gdt, options(readonly, nostack, preserves_flags));
+    }
+}
 
 // The following constants are used by the various Descriptors as flags.
 bitflags! {
@@ -62,18 +79,51 @@ impl Descriptor {
 // The Global Descriptor Table (GDT) was used for memory segmentation. Segmentation is not widely
 // used in machines anymore as we use paging. The GDT is thus used on 64-bit machines for
 // user/kernel mode switching and loading the TSS.
-pub struct Gdt {
+pub struct GlobalDescriptorTable {
     table: [u64; 8],
     len: usize,
 }
 
-impl Gdt {
-    pub fn new() -> Gdt {
-        Gdt {
+impl GlobalDescriptorTable {
+    pub fn new() -> GlobalDescriptorTable {
+        GlobalDescriptorTable {
             table: [0; 8],
             // The first entry of the GDT should always be NULL (0), hence we initialize the len to
             // be 0.
             len: 1,
         }
+    }
+
+    pub fn load(&'static self) {
+        use core::mem::size_of;
+
+        let ptr = DescriptorTablePointer {
+            base: VirtAddr::new(self.table.as_ptr() as u64),
+            limit: (self.table.len() * size_of::<u64>() - 1) as u16,
+        };
+
+        unsafe { lgdt(&ptr) };
+    }
+
+    pub fn add(&mut self, entry: Descriptor) -> SegmentSelector {
+        let index = match entry {
+            Descriptor::UserSegment(val) => self.push(val),
+            Descriptor::SystemSegment(low, high) => {
+                let index = self.push(low);
+                self.push(high);
+                index
+            }
+        };
+        SegmentSelector::new(index as u16, KernelRings::Ring0)
+    }
+
+    fn push(&mut self, value: u64) -> usize {
+        if self.len > self.table.len() {
+            panic!("GDT FULL");
+        }
+
+        self.table[self.len] = value;
+        self.len += 1;
+        self.len - 1
     }
 }
