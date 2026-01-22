@@ -227,9 +227,11 @@ impl IdtEntryOptions {
             panic!("Interrupt stack table offset is a bit value, cannot be greater than 7.")
         }
 
+        // The hardware IST index starts at 1, but our software IST index starts at 0.
+        // Thus we need to increment the offset by 1 here.
         self.mut_value().set_bits(
             IdtEntryOptions::INTERRUPT_STACK_TABLE_OFFSET_BITS,
-            offset as u16,
+            (offset + 1) as u16,
         );
         self
     }
@@ -310,12 +312,12 @@ fn test_idt_entry_options_ist_offset() {
     let mut options: IdtEntryOptions = IdtEntryOptions::new();
 
     options.set_interrupt_stack_table_offset(0);
-    assert_eq!(options.interrupt_stack_table_offset(), 0);
-
-    options.set_interrupt_stack_table_offset(1);
     assert_eq!(options.interrupt_stack_table_offset(), 1);
 
-    options.set_interrupt_stack_table_offset(7);
+    options.set_interrupt_stack_table_offset(1);
+    assert_eq!(options.interrupt_stack_table_offset(), 2);
+
+    options.set_interrupt_stack_table_offset(6);
     assert_eq!(options.interrupt_stack_table_offset(), 7);
 }
 
@@ -331,7 +333,7 @@ fn test_idt_entry_options_chained_mutation() {
     assert_eq!(options.present(), true);
     assert_eq!(options.descriptor_privilege_level(), KernelRings::Ring0);
     assert_eq!(options.gate_type(), GateType::InterruptGateType);
-    assert_eq!(options.interrupt_stack_table_offset(), 1);
+    assert_eq!(options.interrupt_stack_table_offset(), 2);
 }
 
 #[test_case]

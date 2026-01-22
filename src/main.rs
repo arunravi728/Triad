@@ -77,13 +77,6 @@ pub extern "C" fn _start() -> ! {
 
     interrupts::init();
 
-    fn stack_overflow() {
-        stack_overflow(); // for each recursion, the return address is pushed
-    }
-
-    // trigger a stack overflow
-    stack_overflow();
-
     // We use Rust's conditional compilation feature here. This function is only called in unit
     // tests part of main.rs.
     #[cfg(test)]

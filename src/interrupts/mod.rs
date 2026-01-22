@@ -14,7 +14,7 @@ pub mod tss;
 
 #[derive(Debug)]
 #[repr(C)]
-struct ExceptionStackFrame {
+pub struct ExceptionStackFrame {
     instruction_pointer: VirtAddr,
     code_segment: SegmentSelector,
     cpu_flags: u64,
@@ -77,6 +77,7 @@ macro_rules! handler {
     }}
 }
 
+#[macro_export]
 macro_rules! handler_with_error_code {
     ($name: ident) => {{
         #[unsafe(naked)]
@@ -158,7 +159,7 @@ lazy_static! {
             IdtIndex::DoubleFaultInterruptIndex,
             handler_with_error_code!(double_fault_interrupt_handler),
         )
-        .set_interrupt_stack_table_offset((DOUBLE_FAULT_IST_INDEX + 1) as u8);
+        .set_interrupt_stack_table_offset(DOUBLE_FAULT_IST_INDEX as u8);
 
         idt
     };
@@ -207,6 +208,20 @@ lazy_static! {
         };
         tss
     };
+}
+
+pub fn testonly_gdt_init() {
+    GDT.table.load();
+
+    unsafe {
+        // We changed our GDT, so we should reload the code segment register. This is required
+        // since the old segment selector could now point to a different GDT descriptor.
+        CS::set_reg(GDT.selectors.code_selector);
+
+        // We loaded a GDT that contains a TSS selector, but we still need to tell the CPU that it
+        // should use that TSS.
+        load_tss(GDT.selectors.tss_selector);
+    }
 }
 
 pub fn init() {
