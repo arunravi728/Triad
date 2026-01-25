@@ -5,7 +5,6 @@ use bit_field::BitField;
 use core::arch::asm;
 use core::ops::RangeInclusive;
 
-// TODO: Implement your own structures once paging has been implemented.
 use x86_64::addr::VirtAddr;
 use x86_64::instructions::tables::DescriptorTablePointer;
 
