@@ -5,7 +5,11 @@
 use x86_64::instructions::port::Port;
 
 const CMD_EOI: u8 = 0x20;
+const CMD_CASCADED_INIT: u8 = 0x11;
+const CMD_8086_MODE: u8 = 0x01;
+const CMD_DISABLE_PIC: u8 = 0xFF;
 
+const IO_WAIT_PORT: u16 = 0x80;
 const PRIMARY_CMD_PORT: u16 = 0x20;
 const PRIMARY_DATA_PORT: u16 = 0x21;
 const SECONDARY_CMD_PORT: u16 = 0xA0;
@@ -31,6 +35,64 @@ impl Pics {
             },
         }
     }
+
+    pub unsafe fn init(&mut self) {
+        // Tell the two PICs we are sending the initialization sequence.
+        self.primary.command_port.write(CMD_CASCADED_INIT);
+        io_wait();
+        self.secondary.command_port.write(CMD_CASCADED_INIT);
+        io_wait();
+
+        // Setup base offsets.
+        self.primary.data_port.write(self.primary.idt_base_offset);
+        io_wait();
+        self.secondary
+            .data_port
+            .write(self.secondary.idt_base_offset);
+        io_wait();
+
+        // Cascade PICs
+        self.primary.data_port.write(0x04);
+        io_wait();
+        self.secondary.data_port.write(0x02);
+        io_wait();
+
+        self.primary.data_port.write(CMD_8086_MODE);
+        io_wait();
+        self.secondary.data_port.write(CMD_8086_MODE);
+        io_wait();
+
+        // Unmask the PICs to allow future interrupts
+        self.primary.data_port.write(0);
+        self.secondary.data_port.write(0);
+    }
+
+    pub unsafe fn disable(&mut self) {
+        self.write_masks(CMD_DISABLE_PIC, CMD_DISABLE_PIC);
+    }
+
+    pub unsafe fn notify_end_of_interrupt(&mut self, interrupt_id: u8) {
+        if self.handles_interrupt(interrupt_id) {
+            if self.secondary.handles_interrupt(interrupt_id) {
+                self.secondary.end_interrupt();
+            }
+            self.primary.end_interrupt();
+        }
+    }
+
+    pub fn handles_interrupt(&self, interrupt_id: u8) -> bool {
+        self.primary.handles_interrupt(interrupt_id)
+            || self.secondary.handles_interrupt(interrupt_id)
+    }
+
+    pub unsafe fn read_masks(&mut self) -> [u8; 2] {
+        [self.primary.read_mask(), self.secondary.read_mask()]
+    }
+
+    pub unsafe fn write_masks(&mut self, primary_mask: u8, secondary_mask: u8) {
+        self.primary.write_mask(primary_mask);
+        self.secondary.write_mask(secondary_mask);
+    }
 }
 
 struct Pic {
@@ -51,4 +113,13 @@ impl Pic {
     unsafe fn write_mask(&mut self, mask: u8) {
         self.data_port.write(mask);
     }
+
+    fn handles_interrupt(&self, interrupt_id: u8) -> bool {
+        self.idt_base_offset <= interrupt_id && interrupt_id < self.idt_base_offset + 8
+    }
+}
+
+unsafe fn io_wait() {
+    let mut port: Port<u8> = Port::new(IO_WAIT_PORT);
+    port.write(0);
 }
