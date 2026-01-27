@@ -21,7 +21,9 @@ pub struct Pics {
 }
 
 impl Pics {
-    pub unsafe fn new(primary_offset: u8, secondary_offset: u8) -> Self {
+    // This function needs to be const as it is used to create the Pics instance in a static
+    // expression.
+    pub const unsafe fn new(primary_offset: u8, secondary_offset: u8) -> Self {
         Pics {
             primary: Pic {
                 idt_base_offset: primary_offset,
