@@ -1,6 +1,7 @@
 use lazy_static::lazy_static;
 
 use crate::interrupts::idt::IdtIndex;
+use crate::interrupts::pic::Pics;
 use crate::interrupts::segment::{Segment, SegmentSelector, CS};
 use crate::interrupts::tss::load_tss;
 
@@ -135,6 +136,12 @@ macro_rules! handler_with_error_code {
     }}
 }
 
+pub fn enable_hardware_interrupts() {
+    unsafe {
+        core::arch::asm!("sti", options(preserves_flags, nostack));
+    }
+}
+
 lazy_static! {
     static ref IDT: idt::InterruptDescriptorTable = {
         let mut idt = idt::InterruptDescriptorTable::new();
@@ -211,6 +218,11 @@ lazy_static! {
     };
 }
 
+pub const PRIMARY_PIC_OFFSET: u8 = 32;
+pub const SECONDARY_PIC_OFFSET: u8 = 40;
+pub static PICS: spin::Mutex<Pics> =
+    spin::Mutex::new(unsafe { Pics::new(PRIMARY_PIC_OFFSET, SECONDARY_PIC_OFFSET) });
+
 pub fn testonly_gdt_init() {
     GDT.table.load();
 
@@ -239,6 +251,12 @@ pub fn init() {
     }
 
     IDT.load();
+
+    unsafe {
+        PICS.lock().init();
+    }
+
+    enable_hardware_interrupts();
 }
 
 extern "C" fn divide_error_handler(stack_frame: &ExceptionStackFrame) -> ! {
