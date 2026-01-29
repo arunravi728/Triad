@@ -290,5 +290,10 @@ extern "C" fn double_fault_interrupt_handler(
 }
 
 extern "C" fn timer_interrupt_handler(_stack_frame: &ExceptionStackFrame) {
-    crate::println!(".");
+    crate::print!(".");
+
+    unsafe {
+        PICS.lock()
+            .notify_end_of_interrupt(IdtIndex::TimerInterruptIndex as u8);
+    }
 }
