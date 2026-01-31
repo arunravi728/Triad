@@ -169,6 +169,8 @@ lazy_static! {
         )
         .set_interrupt_stack_table_offset(DOUBLE_FAULT_IST_INDEX as u8);
 
+        idt.add_interrupt_handler(IdtIndex::TimerInterruptIndex, handler!(timer_interrupt_handler));
+
         idt
     };
 }
@@ -285,4 +287,13 @@ extern "C" fn double_fault_interrupt_handler(
     );
 
     loop {}
+}
+
+extern "C" fn timer_interrupt_handler(_stack_frame: &ExceptionStackFrame) {
+    crate::print!(".");
+
+    unsafe {
+        PICS.lock()
+            .notify_end_of_interrupt(IdtIndex::TimerInterruptIndex as u8);
+    }
 }
