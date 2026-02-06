@@ -18,21 +18,21 @@ where
 }
 
 #[inline]
-pub fn enable_interrupts() {
+fn enable_interrupts() {
     unsafe {
         core::arch::asm!("sti", options(preserves_flags, nostack));
     }
 }
 
 #[inline]
-pub fn disable_interrupts() {
+fn disable_interrupts() {
     unsafe {
         core::arch::asm!("cli", options(preserves_flags, nostack));
     }
 }
 
 #[inline]
-pub fn are_interrupts_enabled() -> bool {
+fn are_interrupts_enabled() -> bool {
     let rflags: u64;
     unsafe {
         core::arch::asm!(
