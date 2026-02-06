@@ -9,6 +9,7 @@ use x86_64::addr::VirtAddr;
 
 pub mod gdt;
 pub mod idt;
+pub mod instructions;
 pub mod pic;
 pub mod privilege;
 pub mod segment;

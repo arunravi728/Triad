@@ -31,11 +31,15 @@ macro_rules! serial_print {
 
 #[doc(hidden)]
 pub fn _serial_print(args: ::core::fmt::Arguments) {
+    use crate::interrupts::instructions::run_without_interrupts;
     use core::fmt::Write;
-    SERIAL
-        .lock()
-        .write_fmt(args)
-        .expect("Printing to serial failed");
+
+    run_without_interrupts(|| {
+        SERIAL
+            .lock()
+            .write_fmt(args)
+            .expect("Printing to serial failed");
+    })
 }
 
 #[test_case]
