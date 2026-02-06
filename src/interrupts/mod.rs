@@ -264,12 +264,12 @@ pub fn init() {
 
 extern "C" fn divide_error_handler(stack_frame: &ExceptionStackFrame) -> ! {
     crate::println!("\nEXCEPTION: DIVIDE BY ZERO\n{:#?}", &*stack_frame);
-    loop {}
+    crate::hlt()
 }
 
 extern "C" fn invalid_opcode_handler(stack_frame: &ExceptionStackFrame) -> ! {
     crate::println!("\nEXCEPTION: INVALID OPCODE\n{:#?}", &*stack_frame);
-    loop {}
+    crate::hlt()
 }
 
 extern "C" fn breakpoint_interrupt_handler(stack_frame: &ExceptionStackFrame) {
@@ -287,7 +287,7 @@ extern "C" fn double_fault_interrupt_handler(
         &*stack_frame
     );
 
-    loop {}
+    crate::hlt()
 }
 
 extern "C" fn timer_interrupt_handler(_stack_frame: &ExceptionStackFrame) {

@@ -10,7 +10,7 @@ use triad::{println, test_panic_handler};
 #[unsafe(no_mangle)]
 pub extern "C" fn _start() -> ! {
     run_test();
-    loop {}
+    triad::hlt()
 }
 
 #[panic_handler]

@@ -20,7 +20,7 @@
 #![reexport_test_harness_main = "run_tests"]
 
 use core::panic::PanicInfo;
-use triad::{interrupts, println};
+use triad::{hlt, interrupts, println};
 
 #[allow(dead_code)]
 #[cfg(not(test))]
@@ -82,7 +82,7 @@ pub extern "C" fn _start() -> ! {
     #[cfg(test)]
     run_tests();
 
-    loop {}
+    hlt();
 }
 
 // This function is called on panic.
@@ -95,7 +95,7 @@ pub extern "C" fn _start() -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
-    loop {}
+    hlt();
 }
 
 // This panic handler is called when we run unit tests associated with main.rs.

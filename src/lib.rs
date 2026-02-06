@@ -16,7 +16,17 @@ pub mod print;
 pub extern "C" fn _start() -> ! {
     // Calls test_runner()
     run_tests();
-    loop {}
+    hlt();
+}
+
+// The loop statement causes the CPU to wait endlessly making it inefficient. The hlt instructions
+// halts the CPU until the next interrupt arrives. This makes it a great replacement for loop.
+pub fn hlt() -> ! {
+    loop {
+        unsafe {
+            core::arch::asm!("hlt", options(nomem, nostack, preserves_flags));
+        }
+    }
 }
 
 #[cfg(test)]
@@ -38,7 +48,7 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
     serial_println!("[failed]\n");
     serial_println!("Error: {}\n", info);
     exit_qemu(QemuExitCode::Failed);
-    loop {}
+    hlt();
 }
 
 // We use the isa-debug-exit device provide by QEMU to exit when running tests. We can quit QEMU

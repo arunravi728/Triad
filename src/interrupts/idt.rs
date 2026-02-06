@@ -341,7 +341,7 @@ fn test_idt_entry_options_chained_mutation() {
 fn test_idt_entry_construction() {
     extern "C" fn test_handler() -> ! {
         crate::println!("TEST INTERRUPT HANDLER");
-        loop {}
+        crate::hlt();
     }
 
     let test_handler_address = (test_handler as extern "C" fn() -> !) as u64;
@@ -367,7 +367,7 @@ fn test_idt_entry_construction() {
 fn test_idt_divide_error_setup() {
     extern "C" fn divide_error_handler() -> ! {
         crate::println!("DIVIDE ERROR INTERRUPT HANDLER");
-        loop {}
+        crate::hlt()
     }
 
     let mut idt = InterruptDescriptorTable::new();
@@ -407,7 +407,7 @@ fn test_idt_divide_error_setup() {
 fn test_idt_invalid_opcode_setup() {
     extern "C" fn invalid_opcode_handler() -> ! {
         crate::println!("INVALID OPCODE INTERRUPT HANDLER");
-        loop {}
+        crate::hlt()
     }
 
     let mut idt = InterruptDescriptorTable::new();
@@ -449,7 +449,7 @@ fn test_idt_invalid_opcode_setup() {
 fn test_idt_breakpoint_setup() {
     extern "C" fn breakpoint_handler() -> ! {
         crate::println!("BREAKPOINT INTERRUPT HANDLER");
-        loop {}
+        crate::hlt()
     }
 
     let mut idt = InterruptDescriptorTable::new();
@@ -489,7 +489,7 @@ fn test_idt_breakpoint_setup() {
 fn test_idt_double_fault_setup() {
     extern "C" fn double_fault_handler() -> ! {
         crate::println!("DOUBLE FAULT INTERRUPT HANDLER");
-        loop {}
+        crate::hlt()
     }
 
     let mut idt = InterruptDescriptorTable::new();
