@@ -46,8 +46,12 @@ macro_rules! print {
 
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
+    use crate::interrupts::instructions::run_without_interrupts;
     use core::fmt::Write;
-    WRITER.lock().write_fmt(args).unwrap();
+
+    run_without_interrupts(|| {
+        WRITER.lock().write_fmt(args).unwrap();
+    })
 }
 
 #[allow(dead_code)]

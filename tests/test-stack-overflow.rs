@@ -35,7 +35,7 @@ extern "C" fn double_fault_interrupt_handler(
     triad::serial_println!("[ok]");
     exit_qemu(triad::QemuExitCode::Success);
 
-    loop {}
+    triad::hlt()
 }
 
 #[unsafe(no_mangle)]

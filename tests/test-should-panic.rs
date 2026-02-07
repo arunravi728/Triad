@@ -9,14 +9,14 @@ pub extern "C" fn _start() -> ! {
     should_panic();
     serial_println!("[Test did not panic]");
     exit_qemu(QemuExitCode::Failed);
-    loop {}
+    triad::hlt()
 }
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     serial_println!("[ok]");
     exit_qemu(QemuExitCode::Success);
-    loop {}
+    triad::hlt()
 }
 
 fn should_panic() {
