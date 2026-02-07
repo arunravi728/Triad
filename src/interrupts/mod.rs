@@ -7,6 +7,9 @@ use crate::interrupts::tss::load_tss;
 
 use x86_64::addr::VirtAddr;
 
+use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
+use spin::Mutex;
+
 pub mod gdt;
 pub mod idt;
 pub mod instructions;
@@ -223,6 +226,15 @@ lazy_static! {
     };
 }
 
+lazy_static! {
+    static ref KEYBOARD: Mutex<Keyboard<layouts::Us104Key, ScancodeSet1>> =
+        Mutex::new(Keyboard::new(
+            ScancodeSet1::new(),
+            layouts::Us104Key,
+            HandleControl::Ignore
+        ));
+}
+
 pub const PRIMARY_PIC_OFFSET: u8 = 32;
 pub const SECONDARY_PIC_OFFSET: u8 = 40;
 pub static PICS: spin::Mutex<Pics> =
@@ -293,7 +305,6 @@ extern "C" fn double_fault_interrupt_handler(
 }
 
 extern "C" fn timer_interrupt_handler(_stack_frame: &ExceptionStackFrame) {
-    crate::print!(".");
     unsafe {
         PICS.lock()
             .notify_end_of_interrupt(IdtIndex::TimerInterruptIndex as u8);
@@ -303,9 +314,19 @@ extern "C" fn timer_interrupt_handler(_stack_frame: &ExceptionStackFrame) {
 extern "C" fn keyboard_interrupt_handler(_stack_frame: &ExceptionStackFrame) {
     use x86_64::instructions::port::Port;
 
+    let mut keyboard = KEYBOARD.lock();
     let mut port = Port::new(0x60);
     let scancode: u8 = unsafe { port.read() };
-    crate::print!("{}", scancode);
+
+    if let Ok(Some(event)) = keyboard.add_byte(scancode) {
+        if let Some(key) = keyboard.process_keyevent(event) {
+            match key {
+                DecodedKey::Unicode(character) => crate::print!("{}", character),
+                DecodedKey::RawKey(key) => crate::print!("{:?}", key),
+            }
+        }
+    }
+
     unsafe {
         PICS.lock()
             .notify_end_of_interrupt(IdtIndex::KeyboardInterruptIndex as u8);
