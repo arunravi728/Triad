@@ -172,6 +172,8 @@ lazy_static! {
 
         idt.add_interrupt_handler(IdtIndex::TimerInterruptIndex, handler!(timer_interrupt_handler));
 
+        idt.add_interrupt_handler(IdtIndex::KeyboardInterruptIndex, handler!(keyboard_interrupt_handler));
+
         idt
     };
 }
@@ -292,9 +294,20 @@ extern "C" fn double_fault_interrupt_handler(
 
 extern "C" fn timer_interrupt_handler(_stack_frame: &ExceptionStackFrame) {
     crate::print!(".");
-
     unsafe {
         PICS.lock()
             .notify_end_of_interrupt(IdtIndex::TimerInterruptIndex as u8);
+    }
+}
+
+extern "C" fn keyboard_interrupt_handler(_stack_frame: &ExceptionStackFrame) {
+    use x86_64::instructions::port::Port;
+
+    let mut port = Port::new(0x60);
+    let scancode: u8 = unsafe { port.read() };
+    crate::print!("{}", scancode);
+    unsafe {
+        PICS.lock()
+            .notify_end_of_interrupt(IdtIndex::KeyboardInterruptIndex as u8);
     }
 }
