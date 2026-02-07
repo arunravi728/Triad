@@ -17,6 +17,7 @@ pub mod pic;
 pub mod privilege;
 pub mod segment;
 pub mod tss;
+pub mod utils;
 
 #[derive(Debug)]
 #[repr(C)]
@@ -174,7 +175,6 @@ lazy_static! {
         .set_interrupt_stack_table_offset(DOUBLE_FAULT_IST_INDEX as u8);
 
         idt.add_interrupt_handler(IdtIndex::TimerInterruptIndex, handler!(timer_interrupt_handler));
-
         idt.add_interrupt_handler(IdtIndex::KeyboardInterruptIndex, handler!(keyboard_interrupt_handler));
 
         idt
