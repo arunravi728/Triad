@@ -2,10 +2,10 @@
 #![no_main]
 
 use core::panic::PanicInfo;
+use kernel::interrupts::idt::{IdtIndex, InterruptDescriptorTable};
 use lazy_static::lazy_static;
-use triad::interrupts::idt::{IdtIndex, InterruptDescriptorTable};
 
-use triad::exit_qemu;
+use kernel::exit_qemu;
 
 const DOUBLE_FAULT_IST_INDEX: u8 = 0;
 
@@ -14,7 +14,7 @@ lazy_static! {
         let mut idt = InterruptDescriptorTable::new();
         idt.add_interrupt_handler(
             IdtIndex::DoubleFaultInterruptIndex,
-            triad::handler_with_error_code!(double_fault_interrupt_handler),
+            kernel::handler_with_error_code!(double_fault_interrupt_handler),
         )
         .set_interrupt_stack_table_offset(DOUBLE_FAULT_IST_INDEX as u8);
 
@@ -23,26 +23,26 @@ lazy_static! {
 }
 
 extern "C" fn double_fault_interrupt_handler(
-    stack_frame: &triad::interrupts::ExceptionStackFrame,
+    stack_frame: &kernel::interrupts::ExceptionStackFrame,
     error_code: u64,
 ) -> ! {
-    triad::serial_println!(
+    kernel::serial_println!(
         "\nEXCEPTION: DOUBLE FAULT with error code {:?}\n{:#?}",
         error_code,
         &*stack_frame
     );
 
-    triad::serial_println!("[ok]");
-    exit_qemu(triad::QemuExitCode::Success);
+    kernel::serial_println!("[ok]");
+    exit_qemu(kernel::QemuExitCode::Success);
 
-    triad::hlt()
+    kernel::hlt()
 }
 
 #[unsafe(no_mangle)]
 pub extern "C" fn _start() -> ! {
-    triad::serial_println!("Stack Overflow Test");
+    kernel::serial_println!("Stack Overflow Test");
 
-    triad::interrupts::testonly_gdt_init();
+    kernel::interrupts::testonly_gdt_init();
     IDT.load();
 
     generate_stack_overflow();
@@ -52,7 +52,7 @@ pub extern "C" fn _start() -> ! {
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    triad::test_panic_handler(info);
+    kernel::test_panic_handler(info);
 }
 
 #[allow(unconditional_recursion)]

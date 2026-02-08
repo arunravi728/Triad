@@ -1,16 +1,16 @@
 #![no_std]
 #![no_main]
 #![feature(custom_test_frameworks)]
-#![test_runner(triad::test_runner)]
+#![test_runner(kernel::test_runner)]
 #![reexport_test_harness_main = "run_test"]
 
 use core::panic::PanicInfo;
-use triad::{println, test_panic_handler};
+use kernel::{println, test_panic_handler};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn _start() -> ! {
     run_test();
-    triad::hlt()
+    kernel::hlt()
 }
 
 #[panic_handler]

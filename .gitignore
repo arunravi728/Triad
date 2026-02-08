@@ -34,3 +34,8 @@ Cargo.toml.orig
 
 # Host triple duplicate specifications
 triad-llvm-target.json
+
+
+# Added by cargo
+
+/target
