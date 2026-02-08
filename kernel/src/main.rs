@@ -34,11 +34,15 @@ bootloader_api::entry_point!(kernel);
 // If we tricked the compiler to return from the entry point, then we would just cause the CPU to
 // execute random bytes that exist in memory immediately after the entry point, causing a crash or
 // unpredictable behavior.
-fn kernel(_boot_info: &'static mut bootloader_api::BootInfo) -> ! {
+fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     // println!("kernel");
     // println!("This is a toy Rust kernel.");
     // println!("This OS was created in the year {}.", 2025);
-
+    if let Some(framebuffer) = boot_info.framebuffer.as_mut() {
+        for byte in framebuffer.buffer_mut() {
+            *byte = 0x87837;
+        }
+    }
     // interrupts::init();
 
     // We use Rust's conditional compilation feature here. This function is only called in unit
