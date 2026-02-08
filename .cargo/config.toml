@@ -1,13 +1,9 @@
+[build]
+rustflags = ["--cap-lints", "warn"]
+
 # The core Rust library is distributed together with the Rust compiler as a
 # precompiled library. It is only valid for supported host triples. For custom
 # host triples, we need to recompile core and other standard library crates on
 # demand using the build-std feature.
 [unstable]
-build-std-features = ["compiler-builtins-mem"]
-build-std = ["core", "compiler_builtins"]
-
-[build]
-target = "triad-llvm-target.json"
-
-[target.'cfg(target_os = "none")']
-runner = "bootimage runner"
+bindeps = true
