@@ -19,8 +19,20 @@
 // framework.
 #![reexport_test_harness_main = "run_tests"]
 
+use bootloader_api::info::FrameBufferInfo;
+use bootloader_x86_64_common::logger::LockedLogger;
+use conquer_once::spin::OnceCell;
 use core::panic::PanicInfo;
-use kernel::{hlt, interrupts, println};
+use kernel::{hlt, interrupts};
+
+pub(crate) static LOGGER: OnceCell<LockedLogger> = OnceCell::uninit();
+
+pub(crate) fn init_logger(buffer: &'static mut [u8], info: FrameBufferInfo) {
+    let logger = LOGGER.get_or_init(move || LockedLogger::new(buffer, info, true, false));
+    log::set_logger(logger).expect("Logger already set");
+    log::set_max_level(log::LevelFilter::Trace);
+    log::info!("Hello, Kernel Mode!");
+}
 
 bootloader_api::entry_point!(kernel);
 
@@ -38,11 +50,17 @@ fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     // println!("kernel");
     // println!("This is a toy Rust kernel.");
     // println!("This OS was created in the year {}.", 2025);
-    if let Some(framebuffer) = boot_info.framebuffer.as_mut() {
-        for byte in framebuffer.buffer_mut() {
-            *byte = 0x87837;
-        }
-    }
+
+    // Free the doubly wrapped framebuffer from the boot info struct
+    let frame_buffer_optional = &mut boot_info.framebuffer;
+    let frame_buffer_option = frame_buffer_optional.as_mut();
+    let frame_buffer_struct = frame_buffer_option.unwrap();
+
+    // Extract the raw frame buffer
+    let frame_buffer_info = frame_buffer_struct.info().clone();
+    let raw_frame_buffer = frame_buffer_struct.buffer_mut();
+
+    init_logger(raw_frame_buffer, frame_buffer_info);
     // interrupts::init();
 
     // We use Rust's conditional compilation feature here. This function is only called in unit
@@ -62,7 +80,7 @@ fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    println!("{}", info);
+    // println!("{}", info);
     hlt();
 }
 
