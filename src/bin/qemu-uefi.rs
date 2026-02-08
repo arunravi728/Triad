@@ -19,6 +19,8 @@ fn main() {
         &format!("format=raw,if=pflash,file={}", ovmf_code.display()),
         "-drive",
         &format!("format=raw,file={}", env!("UEFI_IMAGE")),
+        "-serial",
+        "stdio",
     ]);
     let exit_status = qemu.status().unwrap();
     process::exit(exit_status.code().unwrap_or(-1));
