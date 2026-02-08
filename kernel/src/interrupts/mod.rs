@@ -255,25 +255,31 @@ pub fn testonly_gdt_init() {
 }
 
 pub fn init() {
+    log::info!("Load the GDT");
     GDT.table.load();
 
     unsafe {
         // We changed our GDT, so we should reload the code segment register. This is required
         // since the old segment selector could now point to a different GDT descriptor.
+        log::info!("Reload the CS register");
         CS::set_reg(GDT.selectors.code_selector);
 
         // We loaded a GDT that contains a TSS selector, but we still need to tell the CPU that it
         // should use that TSS.
+        log::info!("Make the CPU use the TSS");
         load_tss(GDT.selectors.tss_selector);
     }
 
+    log::info!("Load the IDT");
     IDT.load();
 
     unsafe {
+        log::info!("Initialize Chained PICs");
         PICS.lock().init();
     }
 
-    enable_hardware_interrupts();
+    log::info!("Enable Hardware Interrupts");
+    // enable_hardware_interrupts();
 }
 
 extern "C" fn divide_error_handler(stack_frame: &ExceptionStackFrame) -> ! {
