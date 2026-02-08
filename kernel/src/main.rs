@@ -47,10 +47,6 @@ bootloader_api::entry_point!(kernel);
 // execute random bytes that exist in memory immediately after the entry point, causing a crash or
 // unpredictable behavior.
 fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
-    // println!("kernel");
-    // println!("This is a toy Rust kernel.");
-    // println!("This OS was created in the year {}.", 2025);
-
     // Free the doubly wrapped framebuffer from the boot info struct
     let frame_buffer_optional = &mut boot_info.framebuffer;
     let frame_buffer_option = frame_buffer_optional.as_mut();
@@ -61,7 +57,12 @@ fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     let raw_frame_buffer = frame_buffer_struct.buffer_mut();
 
     init_logger(raw_frame_buffer, frame_buffer_info);
-    // interrupts::init();
+
+    log::info!("kernel");
+    log::info!("This is a toy Rust kernel.");
+    log::info!("This OS was created in the year {}.", 2025);
+
+    interrupts::init();
 
     // We use Rust's conditional compilation feature here. This function is only called in unit
     // tests part of main.rs.
@@ -80,7 +81,7 @@ fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    // println!("{}", info);
+    log::info!("{}", info);
     hlt();
 }
 

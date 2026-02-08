@@ -277,17 +277,17 @@ pub fn init() {
 }
 
 extern "C" fn divide_error_handler(stack_frame: &ExceptionStackFrame) -> ! {
-    crate::println!("\nEXCEPTION: DIVIDE BY ZERO\n{:#?}", &*stack_frame);
+    log::info!("\nEXCEPTION: DIVIDE BY ZERO\n{:#?}", &*stack_frame);
     crate::hlt()
 }
 
 extern "C" fn invalid_opcode_handler(stack_frame: &ExceptionStackFrame) -> ! {
-    crate::println!("\nEXCEPTION: INVALID OPCODE\n{:#?}", &*stack_frame);
+    log::info!("\nEXCEPTION: INVALID OPCODE\n{:#?}", &*stack_frame);
     crate::hlt()
 }
 
 extern "C" fn breakpoint_interrupt_handler(stack_frame: &ExceptionStackFrame) {
-    crate::println!("\nEXCEPTION: BREAKPOINT\n{:#?}", &*stack_frame);
+    log::info!("\nEXCEPTION: BREAKPOINT\n{:#?}", &*stack_frame);
 }
 
 // The double fault error code is always 0. x86 expects the double fault handler to be diverging.
@@ -295,7 +295,7 @@ extern "C" fn double_fault_interrupt_handler(
     stack_frame: &ExceptionStackFrame,
     error_code: u64,
 ) -> ! {
-    crate::println!(
+    log::info!(
         "\nEXCEPTION: DOUBLE FAULT with error code {:?}\n{:#?}",
         error_code,
         &*stack_frame
@@ -305,6 +305,7 @@ extern "C" fn double_fault_interrupt_handler(
 }
 
 extern "C" fn timer_interrupt_handler(_stack_frame: &ExceptionStackFrame) {
+    log::info!(".");
     unsafe {
         PICS.lock()
             .notify_end_of_interrupt(IdtIndex::TimerInterruptIndex as u8);
@@ -321,8 +322,8 @@ extern "C" fn keyboard_interrupt_handler(_stack_frame: &ExceptionStackFrame) {
     if let Ok(Some(event)) = keyboard.add_byte(scancode) {
         if let Some(key) = keyboard.process_keyevent(event) {
             match key {
-                DecodedKey::Unicode(character) => crate::print!("{}", character),
-                DecodedKey::RawKey(key) => crate::print!("{:?}", key),
+                DecodedKey::Unicode(character) => log::info!("{}", character),
+                DecodedKey::RawKey(key) => log::info!("{:?}", key),
             }
         }
     }
