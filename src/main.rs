@@ -22,6 +22,8 @@
 use core::panic::PanicInfo;
 use triad::{hlt, interrupts, println};
 
+bootloader_api::entry_point!(kernel);
+
 // Rust uses name mangling by default. Name mangling is the process of giving every function a
 // unique name. We do not want the Rust compiler to change the name of the _start function. This is
 // required to let the linker know of the entry point.
@@ -32,7 +34,7 @@ use triad::{hlt, interrupts, println};
 // If we tricked the compiler to return from the entry point, then we would just cause the CPU to
 // execute random bytes that exist in memory immediately after the entry point, causing a crash or
 // unpredictable behavior.
-pub extern "C" fn _start() -> ! {
+fn kernel(_boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     println!("Triad");
     println!("This is a toy Rust kernel.");
     println!("This OS was created in the year {}.", 2025);
