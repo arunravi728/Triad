@@ -35,11 +35,11 @@ bootloader_api::entry_point!(kernel);
 // execute random bytes that exist in memory immediately after the entry point, causing a crash or
 // unpredictable behavior.
 fn kernel(_boot_info: &'static mut bootloader_api::BootInfo) -> ! {
-    println!("kernel");
-    println!("This is a toy Rust kernel.");
-    println!("This OS was created in the year {}.", 2025);
+    // println!("kernel");
+    // println!("This is a toy Rust kernel.");
+    // println!("This OS was created in the year {}.", 2025);
 
-    interrupts::init();
+    // interrupts::init();
 
     // We use Rust's conditional compilation feature here. This function is only called in unit
     // tests part of main.rs.
