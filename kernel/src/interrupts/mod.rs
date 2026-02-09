@@ -343,7 +343,7 @@ extern "C" fn keyboard_interrupt_handler(_stack_frame: &ExceptionStackFrame) {
         if let Some(key) = keyboard.process_keyevent(event) {
             match key {
                 DecodedKey::Unicode(character) => kprint!("{}", character),
-                DecodedKey::RawKey(key) => kprint!("{:?}", key),
+                _ => {}
             }
         }
     }
