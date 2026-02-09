@@ -53,8 +53,8 @@ pub enum IdtIndex {
     SimdFloatingPointExceptionInterruptIndex = 19,
     VirtualizationExceptionInterruptIndex = 20,
     ControlProtectionExceptionInterruptIndex = 21,
-    TimerInterruptIndex = 32,
-    KeyboardInterruptIndex = 33,
+    TimerInterruptIndex = 104,
+    KeyboardInterruptIndex = 105,
 }
 
 #[derive(Clone, Debug)]

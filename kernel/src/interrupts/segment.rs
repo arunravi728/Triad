@@ -52,3 +52,111 @@ impl Segment for CS {
         }
     }
 }
+
+// Stack Segment
+#[derive(Debug)]
+pub struct SS;
+
+impl Segment for SS {
+    #[inline]
+    fn reg() -> SegmentSelector {
+        let segment: u16;
+        unsafe {
+            asm!("mov {0:x}, ss", out(reg) segment, options(nomem, nostack, preserves_flags));
+        }
+        SegmentSelector(segment)
+    }
+
+    #[inline]
+    unsafe fn set_reg(sel: SegmentSelector) {
+        unsafe {
+            asm!("mov ss, {0:x}", in(reg) sel.0, options(nostack, preserves_flags));
+        }
+    }
+}
+
+// Data Segment
+#[derive(Debug)]
+pub struct DS;
+
+impl Segment for DS {
+    #[inline]
+    fn reg() -> SegmentSelector {
+        let segment: u16;
+        unsafe {
+            asm!("mov {0:x}, ds", out(reg) segment, options(nomem, nostack, preserves_flags));
+        }
+        SegmentSelector(segment)
+    }
+
+    #[inline]
+    unsafe fn set_reg(sel: SegmentSelector) {
+        unsafe {
+            asm!("mov ds, {0:x}", in(reg) sel.0, options(nostack, preserves_flags));
+        }
+    }
+}
+
+// Extra Segment
+#[derive(Debug)]
+pub struct ES;
+
+impl Segment for ES {
+    #[inline]
+    fn reg() -> SegmentSelector {
+        let segment: u16;
+        unsafe {
+            asm!("mov {0:x}, es", out(reg) segment, options(nomem, nostack, preserves_flags));
+        }
+        SegmentSelector(segment)
+    }
+
+    #[inline]
+    unsafe fn set_reg(sel: SegmentSelector) {
+        unsafe {
+            asm!("mov es, {0:x}", in(reg) sel.0, options(nostack, preserves_flags));
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct FS;
+
+impl Segment for FS {
+    #[inline]
+    fn reg() -> SegmentSelector {
+        let segment: u16;
+        unsafe {
+            asm!("mov {0:x}, fs", out(reg) segment, options(nomem, nostack, preserves_flags));
+        }
+        SegmentSelector(segment)
+    }
+
+    #[inline]
+    unsafe fn set_reg(sel: SegmentSelector) {
+        unsafe {
+            asm!("mov fs, {0:x}", in(reg) sel.0, options(nostack, preserves_flags));
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct GS;
+
+impl Segment for GS {
+    #[inline]
+    fn reg() -> SegmentSelector {
+        let segment: u16;
+        unsafe {
+            asm!("mov {0:x}, gs", out(reg) segment, options(nomem, nostack, preserves_flags));
+        }
+        SegmentSelector(segment)
+    }
+
+    #[inline]
+    unsafe fn set_reg(sel: SegmentSelector) {
+        unsafe {
+            asm!("mov gs, {0:x}", in(reg) sel.0, options(nostack, preserves_flags));
+        }
+    }
+}

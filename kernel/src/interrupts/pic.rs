@@ -65,8 +65,8 @@ impl Pics {
         io_wait();
 
         // Unmask the PICs to allow future interrupts
-        self.primary.data_port.write(0);
-        self.secondary.data_port.write(0);
+        self.primary.data_port.write(0xFD);
+        self.secondary.data_port.write(0xFF);
     }
 
     pub unsafe fn disable(&mut self) {

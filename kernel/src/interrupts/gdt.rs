@@ -21,6 +21,7 @@ pub unsafe fn lgdt(gdt: &DescriptorTablePointer) {
 // The following constants are used by the various Descriptors as flags.
 bitflags! {
     struct DescriptorFlags: u64 {
+        const WRITABLE          = 1 << 41;
         const CONFORMING        = 1 << 42;
         const EXECUTABLE        = 1 << 43;
         const USER_SEGMENT      = 1 << 44;
@@ -45,6 +46,13 @@ impl Descriptor {
             | DescriptorFlags::PRESENT
             | DescriptorFlags::EXECUTABLE
             | DescriptorFlags::LONG_MODE;
+        Descriptor::UserSegment(flags.bits())
+    }
+
+    pub fn kernel_data_segment() -> Descriptor {
+        let flags = DescriptorFlags::USER_SEGMENT
+            | DescriptorFlags::PRESENT
+            | DescriptorFlags::WRITABLE;
         Descriptor::UserSegment(flags.bits())
     }
 

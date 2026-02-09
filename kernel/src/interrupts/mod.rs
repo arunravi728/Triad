@@ -2,7 +2,7 @@ use lazy_static::lazy_static;
 
 use crate::interrupts::idt::IdtIndex;
 use crate::interrupts::pic::Pics;
-use crate::interrupts::segment::{Segment, SegmentSelector, CS};
+use crate::interrupts::segment::{Segment, SegmentSelector, CS, DS, ES, FS, GS, SS};
 use crate::interrupts::tss::load_tss;
 
 use x86_64::addr::VirtAddr;
@@ -183,6 +183,7 @@ lazy_static! {
 
 struct Selectors {
     code_selector: SegmentSelector,
+    data_selector: SegmentSelector,
     tss_selector: SegmentSelector,
 }
 
@@ -195,12 +196,14 @@ lazy_static! {
     static ref GDT: GdtContainer = {
         let mut gdt = gdt::GlobalDescriptorTable::new();
         let code_selector = gdt.add(gdt::Descriptor::kernel_code_segment());
+        let data_selector = gdt.add(gdt::Descriptor::kernel_data_segment());
         let tss_selector = gdt.add(gdt::Descriptor::tss_segment(&TSS));
 
         GdtContainer {
             table: gdt,
             selectors: Selectors {
                 code_selector,
+                data_selector,
                 tss_selector,
             },
         }
@@ -235,8 +238,8 @@ lazy_static! {
         ));
 }
 
-pub const PRIMARY_PIC_OFFSET: u8 = 32;
-pub const SECONDARY_PIC_OFFSET: u8 = 40;
+pub const PRIMARY_PIC_OFFSET: u8 = 104;
+pub const SECONDARY_PIC_OFFSET: u8 = 112;
 pub static PICS: spin::Mutex<Pics> =
     spin::Mutex::new(unsafe { Pics::new(PRIMARY_PIC_OFFSET, SECONDARY_PIC_OFFSET) });
 
@@ -247,6 +250,11 @@ pub fn testonly_gdt_init() {
         // We changed our GDT, so we should reload the code segment register. This is required
         // since the old segment selector could now point to a different GDT descriptor.
         CS::set_reg(GDT.selectors.code_selector);
+        SS::set_reg(GDT.selectors.data_selector);
+        DS::set_reg(GDT.selectors.data_selector);
+        ES::set_reg(GDT.selectors.data_selector);
+        FS::set_reg(GDT.selectors.data_selector);
+        GS::set_reg(GDT.selectors.data_selector);
 
         // We loaded a GDT that contains a TSS selector, but we still need to tell the CPU that it
         // should use that TSS.
@@ -261,8 +269,13 @@ pub fn init() {
     unsafe {
         // We changed our GDT, so we should reload the code segment register. This is required
         // since the old segment selector could now point to a different GDT descriptor.
-        log::info!("Reload the CS register");
+        log::info!("Reload the segment register");
         CS::set_reg(GDT.selectors.code_selector);
+        SS::set_reg(GDT.selectors.data_selector);
+        DS::set_reg(GDT.selectors.data_selector);
+        ES::set_reg(GDT.selectors.data_selector);
+        FS::set_reg(GDT.selectors.data_selector);
+        GS::set_reg(GDT.selectors.data_selector);
 
         // We loaded a GDT that contains a TSS selector, but we still need to tell the CPU that it
         // should use that TSS.
@@ -279,7 +292,7 @@ pub fn init() {
     }
 
     log::info!("Enable Hardware Interrupts");
-    // enable_hardware_interrupts();
+    enable_hardware_interrupts();
 }
 
 extern "C" fn divide_error_handler(stack_frame: &ExceptionStackFrame) -> ! {
