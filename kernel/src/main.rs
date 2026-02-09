@@ -19,20 +19,8 @@
 // framework.
 #![reexport_test_harness_main = "run_tests"]
 
-use bootloader_api::info::FrameBufferInfo;
-use bootloader_x86_64_common::logger::LockedLogger;
-use conquer_once::spin::OnceCell;
 use core::panic::PanicInfo;
-use kernel::{hlt, interrupts};
-
-pub(crate) static LOGGER: OnceCell<LockedLogger> = OnceCell::uninit();
-
-pub(crate) fn init_logger(buffer: &'static mut [u8], info: FrameBufferInfo) {
-    let logger = LOGGER.get_or_init(move || LockedLogger::new(buffer, info, true, false));
-    log::set_logger(logger).expect("Logger already set");
-    log::set_max_level(log::LevelFilter::Trace);
-    log::info!("Hello, Kernel Mode!");
-}
+use kernel::{hlt, interrupts, print};
 
 bootloader_api::entry_point!(kernel);
 
@@ -56,7 +44,7 @@ fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     let frame_buffer_info = frame_buffer_struct.info().clone();
     let raw_frame_buffer = frame_buffer_struct.buffer_mut();
 
-    init_logger(raw_frame_buffer, frame_buffer_info);
+    print::log::init_logger(raw_frame_buffer, frame_buffer_info);
 
     log::info!("This is a toy Rust kernel.");
     log::info!("This OS was created in the year {}.", 2025);
