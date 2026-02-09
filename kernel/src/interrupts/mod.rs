@@ -4,6 +4,7 @@ use crate::interrupts::idt::IdtIndex;
 use crate::interrupts::pic::Pics;
 use crate::interrupts::segment::{Segment, SegmentSelector, CS, DS, ES, FS, GS, SS};
 use crate::interrupts::tss::load_tss;
+use crate::kprint;
 
 use x86_64::addr::VirtAddr;
 
@@ -341,8 +342,8 @@ extern "C" fn keyboard_interrupt_handler(_stack_frame: &ExceptionStackFrame) {
     if let Ok(Some(event)) = keyboard.add_byte(scancode) {
         if let Some(key) = keyboard.process_keyevent(event) {
             match key {
-                DecodedKey::Unicode(character) => log::info!("{}", character),
-                DecodedKey::RawKey(key) => log::info!("{:?}", key),
+                DecodedKey::Unicode(character) => kprint!("{}", character),
+                DecodedKey::RawKey(key) => kprint!("{:?}", key),
             }
         }
     }

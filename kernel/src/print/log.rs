@@ -36,6 +36,17 @@ impl KernelLogger {
         }
     }
 
+    pub fn print_raw(&self, args: core::fmt::Arguments) {
+        if let Some(framebuffer) = &self.framebuffer {
+            let mut framebuffer = framebuffer.lock();
+            framebuffer.write_fmt(args).unwrap();
+        }
+        if let Some(serial) = &self.serial {
+            let mut serial = serial.lock();
+            serial.write_fmt(args).unwrap();
+        }
+    }
+
     // Force-unlocks the logger to prevent a deadlock.
     //
     // ## Safety
@@ -47,6 +58,24 @@ impl KernelLogger {
         if let Some(serial) = &self.serial {
             unsafe { serial.force_unlock() };
         }
+    }
+}
+
+#[macro_export]
+macro_rules! kprint {
+    ($($arg:tt)*) => ($crate::print::log::_print(format_args!($($arg)*)));
+}
+
+#[macro_export]
+macro_rules! kprintln {
+    () => ($crate::print::log::kprint!("\n"));
+    ($($arg:tt)*) => ($crate::print::log::kprint!("{}\n", format_args!($($arg)*)));
+}
+
+#[doc(hidden)]
+pub fn _print(args: core::fmt::Arguments) {
+    if let Some(logger) = LOGGER.get() {
+        logger.print_raw(args);
     }
 }
 
