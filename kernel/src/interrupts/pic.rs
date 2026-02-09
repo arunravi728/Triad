@@ -65,7 +65,7 @@ impl Pics {
         io_wait();
 
         // Unmask the PICs to allow future interrupts
-        self.primary.data_port.write(0xFD);
+        self.primary.data_port.write(0xFC);
         self.secondary.data_port.write(0xFF);
     }
 

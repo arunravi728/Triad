@@ -58,7 +58,6 @@ fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
 
     init_logger(raw_frame_buffer, frame_buffer_info);
 
-    log::info!("kernel");
     log::info!("This is a toy Rust kernel.");
     log::info!("This OS was created in the year {}.", 2025);
 
