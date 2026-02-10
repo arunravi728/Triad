@@ -5,29 +5,19 @@ A toy operating system written in Rust. The name is a homage to [Operating Syste
 2.  Concurrency
 3.  Persistence
 
+## Feature Set 
+
+1. UEFI Bootloader
+2. Framebuffer Support
+3. Serial Logging
+4. Kernel Logging
+5. Hardware Interrupts via chained PICs
+6. Keyboard & Timers
+
 ## Build & Run
-The target triple for Rust is provided in `triad-llvm-target.jsonc`. However, the internal Rust parser only supports strict `.json` files. To generate the target triple `.json` file, run - 
 
-```bash
-python3 remove-json-comments.py triad-llvm-target.jsonc
 ```
-
-After the `.json` file is created, we can build the kernel -
-
-```bash
-cargo build
-```
-
-We can follow this up by running the below command to boot our kernel inside QEMU - 
-
-```bash
-cargo run
-```
-
-To run associated unit tests - 
-
-```bash
-cargo test
+cargo run --bin qemu-uefi
 ```
 
 ## Acknowledgements
