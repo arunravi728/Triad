@@ -57,9 +57,13 @@ macro_rules! kprintln {
 
 #[doc(hidden)]
 pub fn _print(args: core::fmt::Arguments) {
-    if let Some(logger) = LOGGER.get() {
-        logger.print_raw(args);
-    }
+    use crate::interrupts::instructions::run_without_interrupts;
+
+    run_without_interrupts(|| {
+        if let Some(logger) = LOGGER.get() {
+            logger.print_raw(args);
+        }
+    });
 }
 
 impl log::Log for KernelLogger {
