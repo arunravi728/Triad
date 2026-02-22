@@ -175,6 +175,12 @@ lazy_static! {
         )
         .set_interrupt_stack_table_offset(DOUBLE_FAULT_IST_INDEX as u8);
 
+        idt.add_interrupt_handler(
+            IdtIndex::PageFaultInterruptIndex,
+            handler_with_error_code!(page_fault_interrupt_handler),
+        );
+
+
         idt.add_interrupt_handler(IdtIndex::TimerInterruptIndex, handler!(timer_interrupt_handler));
         idt.add_interrupt_handler(IdtIndex::KeyboardInterruptIndex, handler!(keyboard_interrupt_handler));
 
@@ -312,6 +318,19 @@ extern "C" fn breakpoint_interrupt_handler(stack_frame: &ExceptionStackFrame) {
 
 // The double fault error code is always 0. x86 expects the double fault handler to be diverging.
 extern "C" fn double_fault_interrupt_handler(
+    stack_frame: &ExceptionStackFrame,
+    error_code: u64,
+) -> ! {
+    log::info!(
+        "\nEXCEPTION: DOUBLE FAULT with error code {:?}\n{:#?}",
+        error_code,
+        &*stack_frame
+    );
+
+    crate::hlt()
+}
+
+extern "C" fn page_fault_interrupt_handler(
     stack_frame: &ExceptionStackFrame,
     error_code: u64,
 ) -> ! {
