@@ -335,7 +335,7 @@ extern "C" fn page_fault_interrupt_handler(
     error_code: u64,
 ) -> ! {
     log::info!(
-        "\nEXCEPTION: DOUBLE FAULT with error code {:?}\n{:#?}",
+        "\nEXCEPTION: PAGE FAULT with error code {:?}\n{:#?}",
         error_code,
         &*stack_frame
     );

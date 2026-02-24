@@ -51,6 +51,8 @@ fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
 
     interrupts::init();
 
+    interrupts::utils::generate_page_fault();
+
     // We use Rust's conditional compilation feature here. This function is only called in unit
     // tests part of main.rs.
     #[cfg(test)]
