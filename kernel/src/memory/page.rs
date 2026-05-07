@@ -1,3 +1,13 @@
+use bitflags::bitflags;
+
+bitflags! {
+    #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+    pub struct PageTableFlags : u64 {
+        // Indicates if the page is currently in memory
+        const PRESENT = 1;
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct PageTableEntry {
     entry: u64,
