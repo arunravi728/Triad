@@ -7,6 +7,7 @@
 use core::panic::PanicInfo;
 
 pub mod interrupts;
+pub mod memory;
 pub mod print;
 
 // This entry point is for all unit tests belonging to modules linked to lib.rs. We have a separate

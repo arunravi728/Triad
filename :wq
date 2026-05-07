@@ -20,7 +20,7 @@
 #![reexport_test_harness_main = "run_tests"]
 
 use core::panic::PanicInfo;
-use kernel::{hlt, interrupts, memory, print};
+use kernel::{hlt, interrupts, print};
 
 bootloader_api::entry_point!(kernel);
 
