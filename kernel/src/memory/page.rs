@@ -1,7 +1,7 @@
 use bitflags::bitflags;
 
 bitflags! {
-    #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
     pub struct PageTableFlags : u64 {
         // Indicates if the page is currently in memory
         const PRESENT = 1;
@@ -25,4 +25,9 @@ impl PageTableEntry {
     pub fn set_unused(&mut self) {
         self.entry = 0;
     }
+}
+
+#[repr(align(4096))]
+pub struct PageTable {
+    entries: [PageTableEntry; 512],
 }
