@@ -17,6 +17,21 @@ bitflags! {
 
         // Disables caching
         const DISABLE_CACHING = 1 << 4;
+
+        // Indicates if the page is accessed
+        const ACCESSED = 1 << 5;
+
+        // Indicates if the mapped frame is written to
+        const DIRTY = 1 << 6;
+
+        // Indiactes if the page maps to a huge page instead of a PagetTable
+        const HUGE_PAGE = 1 << 7;
+
+        // Indicates the mapping isn't flushed from the TLB when the address space is switched
+        const GLOBAL = 1 << 8;
+
+        // Forbids execution from mapped frames
+        const NO_EXECUTE = 1 << 63;
     }
 }
 
@@ -39,7 +54,9 @@ impl PageTableEntry {
     }
 }
 
+const PAGE_TABLE_SIZE: usize = 512;
+
 #[repr(align(4096))]
 pub struct PageTable {
-    entries: [PageTableEntry; 512],
+    entries: [PageTableEntry; PAGE_TABLE_SIZE],
 }
