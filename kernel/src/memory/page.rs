@@ -5,6 +5,18 @@ bitflags! {
     pub struct PageTableFlags : u64 {
         // Indicates if the page is currently in memory
         const PRESENT = 1;
+
+        // Indicates if the page is writable
+        const WRITABLE = 1 << 1;
+
+        // Indicates if a page is user accessible
+        const USER_ACCESSIBLE = 1 << 2;
+
+        // Indicates if the write is to memory directly bypassing the cache
+        const WRITE_THROUGH_CACHING = 1 << 3;
+
+        // Disables caching
+        const DISABLE_CACHING = 1 << 4;
     }
 }
 
