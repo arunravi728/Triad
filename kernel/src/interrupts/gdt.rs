@@ -50,9 +50,8 @@ impl Descriptor {
     }
 
     pub fn kernel_data_segment() -> Descriptor {
-        let flags = DescriptorFlags::USER_SEGMENT
-            | DescriptorFlags::PRESENT
-            | DescriptorFlags::WRITABLE;
+        let flags =
+            DescriptorFlags::USER_SEGMENT | DescriptorFlags::PRESENT | DescriptorFlags::WRITABLE;
         Descriptor::UserSegment(flags.bits())
     }
 
@@ -126,7 +125,7 @@ impl GlobalDescriptorTable {
     }
 
     fn push(&mut self, value: u64) -> usize {
-        if self.len > self.table.len() {
+        if self.len >= self.table.len() {
             panic!("GDT FULL");
         }
 

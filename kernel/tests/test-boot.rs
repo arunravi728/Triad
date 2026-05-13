@@ -5,7 +5,7 @@
 #![reexport_test_harness_main = "run_test"]
 
 use core::panic::PanicInfo;
-use kernel::{println, test_panic_handler};
+use kernel::test_panic_handler;
 
 #[unsafe(no_mangle)]
 pub extern "C" fn _start() -> ! {
@@ -20,5 +20,5 @@ fn panic(info: &PanicInfo) -> ! {
 
 #[test_case]
 fn test_boot() {
-    println!("test_println output");
+    log::info!("test_println output");
 }

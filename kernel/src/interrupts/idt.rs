@@ -340,7 +340,7 @@ fn test_idt_entry_options_chained_mutation() {
 #[test_case]
 fn test_idt_entry_construction() {
     extern "C" fn test_handler() -> ! {
-        crate::println!("TEST INTERRUPT HANDLER");
+        log::info!("TEST INTERRUPT HANDLER");
         crate::hlt();
     }
 
@@ -366,7 +366,7 @@ fn test_idt_entry_construction() {
 #[test_case]
 fn test_idt_divide_error_setup() {
     extern "C" fn divide_error_handler() -> ! {
-        crate::println!("DIVIDE ERROR INTERRUPT HANDLER");
+        log::info!("DIVIDE ERROR INTERRUPT HANDLER");
         crate::hlt()
     }
 
@@ -406,7 +406,7 @@ fn test_idt_divide_error_setup() {
 #[test_case]
 fn test_idt_invalid_opcode_setup() {
     extern "C" fn invalid_opcode_handler() -> ! {
-        crate::println!("INVALID OPCODE INTERRUPT HANDLER");
+        log::info!("INVALID OPCODE INTERRUPT HANDLER");
         crate::hlt()
     }
 
@@ -448,7 +448,7 @@ fn test_idt_invalid_opcode_setup() {
 #[test_case]
 fn test_idt_breakpoint_setup() {
     extern "C" fn breakpoint_handler() -> ! {
-        crate::println!("BREAKPOINT INTERRUPT HANDLER");
+        log::info!("BREAKPOINT INTERRUPT HANDLER");
         crate::hlt()
     }
 
@@ -488,7 +488,7 @@ fn test_idt_breakpoint_setup() {
 #[test_case]
 fn test_idt_double_fault_setup() {
     extern "C" fn double_fault_handler() -> ! {
-        crate::println!("DOUBLE FAULT INTERRUPT HANDLER");
+        log::info!("DOUBLE FAULT INTERRUPT HANDLER");
         crate::hlt()
     }
 
