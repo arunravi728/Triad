@@ -20,6 +20,16 @@ A toy operating system written in Rust. The name is a homage to [Operating Syste
 cargo run --bin qemu-uefi
 ```
 
+## Test
+
+```
+# Run all kernel unit tests
+cargo ktest --lib
+
+# Run specific kernel integration test
+cargo ktest --test <test-name>
+```
+
 ## Acknowledgements
 This Rust OS was created with the help of the following resources - 
 1. https://os.phil-opp.com/
