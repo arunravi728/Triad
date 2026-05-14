@@ -7,10 +7,11 @@
 use core::panic::PanicInfo;
 use kernel::test_panic_handler;
 
-#[unsafe(no_mangle)]
-pub extern "C" fn _start() -> ! {
+bootloader_api::entry_point!(test_main);
+
+fn test_main(_boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     run_test();
-    kernel::hlt()
+    kernel::hlt();
 }
 
 #[panic_handler]
