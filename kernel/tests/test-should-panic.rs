@@ -4,8 +4,9 @@
 use core::panic::PanicInfo;
 use kernel::{exit_qemu, serial_print, serial_println, QemuExitCode};
 
-#[unsafe(no_mangle)]
-pub extern "C" fn _start() -> ! {
+bootloader_api::entry_point!(test_main);
+
+fn test_main(_boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     should_panic();
     serial_println!("[Test did not panic]");
     exit_qemu(QemuExitCode::Failed);
