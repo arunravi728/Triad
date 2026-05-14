@@ -1,5 +1,8 @@
 [build]
 rustflags = ["--cap-lints", "warn"]
 
+[target.x86_64-unknown-none]
+runner = "cargo run -p triad --bin qemu-test --"
+
 [unstable]
 bindeps = true

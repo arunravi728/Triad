@@ -10,12 +10,13 @@ pub mod interrupts;
 pub mod memory;
 pub mod print;
 
+#[cfg(test)]
+bootloader_api::entry_point!(test_kernel_main);
+
 // This entry point is for all unit tests belonging to modules linked to lib.rs. We have a separate
 // entry point in the main function for all unit tests part of main.rs.
 #[cfg(test)]
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
-    // Calls test_runner()
+fn test_kernel_main(_boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     run_tests();
     hlt();
 }

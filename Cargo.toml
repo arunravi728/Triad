@@ -8,6 +8,7 @@ default-run = "triad"
 members = ["kernel"]
 
 [dependencies]
+bootloader = "0.11.3"
 ovmf-prebuilt = "0.1.0-alpha"
 
 [build-dependencies]

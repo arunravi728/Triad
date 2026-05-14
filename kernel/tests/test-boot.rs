@@ -20,5 +20,5 @@ fn panic(info: &PanicInfo) -> ! {
 
 #[test_case]
 fn test_boot() {
-    log::info!("test_println output");
+    kernel::serial_println!("test_println output");
 }
