@@ -9,6 +9,8 @@ use kernel::exit_qemu;
 
 const DOUBLE_FAULT_IST_INDEX: u8 = 0;
 
+bootloader_api::entry_point!(test_main);
+
 lazy_static! {
     static ref IDT: InterruptDescriptorTable = {
         let mut idt = InterruptDescriptorTable::new();
@@ -38,8 +40,7 @@ extern "C" fn double_fault_interrupt_handler(
     kernel::hlt()
 }
 
-#[unsafe(no_mangle)]
-pub extern "C" fn _start() -> ! {
+fn test_main(_boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     kernel::serial_println!("Stack Overflow Test");
 
     kernel::interrupts::testonly_gdt_init();
