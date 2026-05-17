@@ -50,3 +50,22 @@ impl Add<VirtualAddress> for VirtualAddress {
         VirtualAddress::new(self.address() + rhs.address())
     }
 }
+
+#[test_case]
+fn test_virtual_address_creation_successful() {
+    let zero = VirtualAddress::zero();
+    assert_eq!(zero.address(), 0x00);
+
+    let addr = VirtualAddress::new(0x18);
+    assert_eq!(addr.address(), 0x18);
+}
+
+#[test_case]
+fn test_virtual_address_only_uses_48_bits() {
+    let address: u64 = 0xFFFF700000000000;
+    let vaddr = VirtualAddress::new(address);
+    let expected_address: u64 = 0x700000000000;
+    assert_eq!(vaddr.address(), expected_address);
+    assert_ne!(vaddr.address(), address);
+    assert_eq!(vaddr.address(), (((address << 16) as i64 >> 16) as u64));
+}
