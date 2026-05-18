@@ -27,19 +27,11 @@ impl VirtualAddress {
     }
 }
 
-impl Add<u64> for VirtualAddress {
+impl<T: Into<u64>> Add<T> for VirtualAddress {
     type Output = VirtualAddress;
     #[inline]
-    fn add(self, rhs: u64) -> Self::Output {
-        VirtualAddress::new(self.address() + rhs as u64)
-    }
-}
-
-impl Add<usize> for VirtualAddress {
-    type Output = VirtualAddress;
-    #[inline]
-    fn add(self, rhs: usize) -> Self::Output {
-        VirtualAddress::new(self.address() + rhs as u64)
+    fn add(self, rhs: T) -> Self::Output {
+        VirtualAddress::new(self.address() + rhs.into())
     }
 }
 
@@ -68,4 +60,19 @@ fn test_virtual_address_only_uses_48_bits() {
     assert_eq!(vaddr.address(), expected_address);
     assert_ne!(vaddr.address(), address);
     assert_eq!(vaddr.address(), (((address << 16) as i64 >> 16) as u64));
+}
+
+#[test_case]
+fn test_basic_add_is_successful() {
+    let vaddr = VirtualAddress::new(0x42);
+    let new_vaddr = vaddr + 0x06 as u64;
+    assert_eq!(new_vaddr.address(), 0x48);
+}
+
+#[test_case]
+fn test_adding_virtual_addresses_is_successful() {
+    let a = VirtualAddress::new(0x42);
+    let b = VirtualAddress::new(0x06);
+    let c = a + b;
+    assert_eq!(c.address(), 0x48);
 }
