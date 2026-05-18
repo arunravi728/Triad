@@ -7,7 +7,6 @@
 use core::panic::PanicInfo;
 
 pub mod interrupts;
-pub mod memory;
 pub mod print;
 
 #[cfg(test)]
