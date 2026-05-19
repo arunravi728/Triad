@@ -2,7 +2,7 @@
 #![no_main]
 
 use core::panic::PanicInfo;
-use kernel::memory::virtual_address::VirtualAddress;
+use kernel::memory::vaddr::VirtualAddress;
 use kernel::{exit_qemu, serial_print, serial_println, QemuExitCode};
 
 bootloader_api::entry_point!(test_main);

@@ -1,2 +1,2 @@
 pub mod page;
-pub mod virtual_address;
+pub mod vaddr;
