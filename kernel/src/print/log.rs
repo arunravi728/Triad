@@ -4,6 +4,8 @@ use conquer_once::spin::OnceCell;
 use core::fmt::Write;
 use spinning_top::Spinlock;
 
+use crate::interrupts::instructions::run_without_interrupts;
+
 // The global logger instance used for the `log` crate.
 pub static LOGGER: OnceCell<KernelLogger> = OnceCell::uninit();
 
@@ -44,6 +46,13 @@ impl KernelLogger {
     }
 }
 
+// We should generally use log::info!. But doing so for keyboard interrupts prints logs in the
+// following format (for keyboard input 'abc') -
+// INFO: a
+// INFO: b
+// INFO: c
+//
+// Thus, only for the purposes of keyboard interrupts, do we use the kprint macro.
 #[macro_export]
 macro_rules! kprint {
     ($($arg:tt)*) => ($crate::print::log::_print(format_args!($($arg)*)));
@@ -72,9 +81,13 @@ impl log::Log for KernelLogger {
     }
 
     fn log(&self, record: &log::Record) {
+        use crate::interrupts::instructions::run_without_interrupts;
+
         if let Some(framebuffer) = &self.framebuffer {
-            let mut framebuffer = framebuffer.lock();
-            writeln!(framebuffer, "{:5}: {}", record.level(), record.args()).unwrap();
+            run_without_interrupts(|| {
+                let mut framebuffer = framebuffer.lock();
+                writeln!(framebuffer, "{:5}: {}", record.level(), record.args()).unwrap();
+            });
         }
     }
 
