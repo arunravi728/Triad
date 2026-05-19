@@ -46,12 +46,25 @@ impl Add<VirtualAddress> for VirtualAddress {
 }
 
 // self - arg
+impl<T: Into<u64> + Clone> Sub<T> for VirtualAddress {
+    type Output = VirtualAddress;
+    #[inline]
+    fn sub(self, arg: T) -> Self::Output {
+        if self.address() < arg.clone().into() {
+            panic!("Can't subtract a larger address from a smaller one'");
+        }
+
+        VirtualAddress::new(self.address() - arg.into())
+    }
+}
+
+// self - arg
 impl Sub<VirtualAddress> for VirtualAddress {
     type Output = VirtualAddress;
     #[inline]
     fn sub(self, arg: VirtualAddress) -> Self::Output {
         if self.address() < arg.address() {
-            panic!("Cant subtract a larger address from a smaller one'");
+            panic!("Can't subtract a larger address from a smaller one'");
         }
 
         VirtualAddress::new(self.address() - arg.address())
@@ -90,6 +103,13 @@ fn test_adding_virtual_addresses_is_successful() {
     let b = VirtualAddress::new(0x06);
     let c = a + b;
     assert_eq!(c.address(), 0x48);
+}
+
+#[test_case]
+fn test_basic_subtraction_is_successful() {
+    let vaddr = VirtualAddress::new(0x0A);
+    let new_vaddr = vaddr - 0x06 as u64;
+    assert_eq!(new_vaddr.address(), 0x04);
 }
 
 #[test_case]

@@ -56,3 +56,7 @@ jobs:
 
       - name: Integration test — stack-overflow
         run: cargo ktest --test test-stack-overflow
+
+      - name: Integration test — virtual-address-panic
+        run: cargo ktest --test test-virtual-address-panic
+

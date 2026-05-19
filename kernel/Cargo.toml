@@ -22,16 +22,6 @@ bench = false
 name = "kernel"
 test = true
 
-[[test]]
-harness = false
-# We don't need a harness functions for single test case test suites as the test runner is not
-# required. We can directly call the test assertions from the entry point function.
-name = "test-should-panic"
-
-[[test]]
-harness = false
-name = "test-stack-overflow"
-
 [dependencies]
 bit_field = "0.10.1"
 bitflags = "2.10.0"
@@ -50,3 +40,19 @@ x86_64 = "0.14.2"
 [dependencies.lazy_static]
 version = "1.0"
 features = ["spin_no_std"]
+
+# We only need to do this while testing tests that should panic.
+[[test]]
+harness = false
+# We don't need a harness functions for single test case test suites as the test runner is not
+# required. We can directly call the test assertions from the entry point function.
+name = "test-should-panic"
+
+[[test]]
+harness = false
+name = "test-virtual-address-panic"
+
+[[test]]
+harness = false
+name = "test-stack-overflow"
+
