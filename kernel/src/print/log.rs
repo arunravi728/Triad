@@ -4,8 +4,6 @@ use conquer_once::spin::OnceCell;
 use core::fmt::Write;
 use spinning_top::Spinlock;
 
-use crate::interrupts::instructions::run_without_interrupts;
-
 // The global logger instance used for the `log` crate.
 pub static LOGGER: OnceCell<KernelLogger> = OnceCell::uninit();
 
