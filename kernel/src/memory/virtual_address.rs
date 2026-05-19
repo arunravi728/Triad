@@ -1,4 +1,4 @@
-use core::ops::Add;
+use core::ops::{Add, Sub};
 
 // A 64 bit virtual address
 //
@@ -27,19 +27,34 @@ impl VirtualAddress {
     }
 }
 
+// self + arg
 impl<T: Into<u64>> Add<T> for VirtualAddress {
     type Output = VirtualAddress;
     #[inline]
-    fn add(self, rhs: T) -> Self::Output {
-        VirtualAddress::new(self.address() + rhs.into())
+    fn add(self, arg: T) -> Self::Output {
+        VirtualAddress::new(self.address() + arg.into())
     }
 }
 
+// self + arg
 impl Add<VirtualAddress> for VirtualAddress {
     type Output = VirtualAddress;
     #[inline]
-    fn add(self, rhs: VirtualAddress) -> Self::Output {
-        VirtualAddress::new(self.address() + rhs.address())
+    fn add(self, arg: VirtualAddress) -> Self::Output {
+        VirtualAddress::new(self.address() + arg.address())
+    }
+}
+
+// self - arg
+impl Sub<VirtualAddress> for VirtualAddress {
+    type Output = VirtualAddress;
+    #[inline]
+    fn sub(self, arg: VirtualAddress) -> Self::Output {
+        if self.address() < arg.address() {
+            panic!("Cant subtract a larger address from a smaller one'");
+        }
+
+        VirtualAddress::new(self.address() - arg.address())
     }
 }
 
@@ -75,4 +90,12 @@ fn test_adding_virtual_addresses_is_successful() {
     let b = VirtualAddress::new(0x06);
     let c = a + b;
     assert_eq!(c.address(), 0x48);
+}
+
+#[test_case]
+fn test_subtracting_virtual_addresses_is_successful() {
+    let a = VirtualAddress::new(0x0A);
+    let b = VirtualAddress::new(0x06);
+    let c = a - b;
+    assert_eq!(c.address(), 0x04);
 }

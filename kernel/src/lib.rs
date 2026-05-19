@@ -10,6 +10,9 @@ pub mod interrupts;
 pub mod print;
 
 #[cfg(test)]
+pub mod memory;
+
+#[cfg(test)]
 bootloader_api::entry_point!(test_kernel_main);
 
 // This entry point is for all unit tests belonging to modules linked to lib.rs. We have a separate
