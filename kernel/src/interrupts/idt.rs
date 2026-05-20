@@ -1,12 +1,12 @@
 use crate::interrupts::privilege::KernelRings;
 use crate::interrupts::segment::{Segment, SegmentSelector, CS};
+use crate::interrupts::structures::DescriptorTablePointer;
+
+use crate::memory::vaddr::VirtualAddress;
 
 use bit_field::BitField;
 use core::arch::asm;
 use core::ops::RangeInclusive;
-
-use x86_64::addr::VirtAddr;
-use x86_64::instructions::tables::DescriptorTablePointer;
 
 // This is the interrupt handler type for the IDT. It needs to be a function type with a defined
 // calling convention, as it is directly called by hardware (a calling convention is an
@@ -84,7 +84,7 @@ impl InterruptDescriptorTable {
         use core::mem::size_of;
 
         let ptr = DescriptorTablePointer {
-            base: VirtAddr::new(self as *const _ as u64),
+            base: VirtualAddress::new(self as *const _ as u64),
             limit: (size_of::<Self>() - 1) as u16, // this needs to be the max addressable byte
         };
 

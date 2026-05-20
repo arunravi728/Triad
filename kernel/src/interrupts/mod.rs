@@ -6,7 +6,7 @@ use crate::interrupts::segment::{Segment, SegmentSelector, CS, DS, ES, FS, GS, S
 use crate::interrupts::tss::load_tss;
 use crate::kprint;
 
-use x86_64::addr::VirtAddr;
+use crate::memory::vaddr::VirtualAddress;
 
 use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
 use spin::Mutex;
@@ -24,10 +24,10 @@ pub mod utils;
 #[derive(Debug)]
 #[repr(C)]
 pub struct ExceptionStackFrame {
-    instruction_pointer: VirtAddr,
+    instruction_pointer: VirtualAddress,
     code_segment: SegmentSelector,
     cpu_flags: u64,
-    stack_pointer: VirtAddr,
+    stack_pointer: VirtualAddress,
     stack_segment: SegmentSelector,
 }
 
@@ -229,8 +229,8 @@ lazy_static! {
             // a read only page.
             static mut STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 
-            let stack_start = VirtAddr::from_ptr(&raw const STACK);
-            let stack_end = stack_start + STACK_SIZE;
+            let stack_start = VirtualAddress::from_ptr(&raw const STACK);
+            let stack_end = stack_start + STACK_SIZE as u64;
             stack_end
         };
         tss

@@ -17,13 +17,18 @@ impl VirtualAddress {
     }
 
     #[inline]
-    pub fn zero() -> VirtualAddress {
+    pub const fn zero() -> VirtualAddress {
         VirtualAddress(0x00)
     }
 
     #[inline]
     pub fn address(&self) -> u64 {
         self.0
+    }
+
+    #[inline]
+    pub fn from_ptr<T: Sized>(ptr: *const T) -> Self {
+        Self::new(ptr as u64)
     }
 }
 
@@ -78,6 +83,13 @@ fn test_virtual_address_creation_successful() {
 
     let addr = VirtualAddress::new(0x18);
     assert_eq!(addr.address(), 0x18);
+}
+
+#[test_case]
+fn test_virtual_address_creation_from_ptr_successful() {
+    let stack: [u8; 4096] = [0; 4096];
+    let addr = VirtualAddress::from_ptr(&raw const stack);
+    assert_ne!(addr.address(), 0x00);
 }
 
 #[test_case]

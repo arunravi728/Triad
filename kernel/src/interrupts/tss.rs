@@ -1,8 +1,8 @@
-use x86_64::addr::VirtAddr;
-
 use core::arch::asm;
 
 use crate::interrupts::segment::SegmentSelector;
+
+use crate::memory::vaddr::VirtualAddress;
 
 // Load the task state register using the `ltr` instruction.
 #[inline]
@@ -25,11 +25,11 @@ pub struct TaskStateSegment {
     reserved_1: u32,
 
     // The stack pointers used when a privilege level change occurs.
-    pub privilege_stack_table: [VirtAddr; 3],
+    pub privilege_stack_table: [VirtualAddress; 3],
     reserved_2: u64,
 
     // The stack pointers used when an IDT entry has an IST value other than 0.
-    pub interrupt_stack_table: [VirtAddr; 7],
+    pub interrupt_stack_table: [VirtualAddress; 7],
 
     reserved_3: u64,
     reserved_4: u16,
@@ -43,8 +43,8 @@ impl TaskStateSegment {
     #[inline]
     pub const fn new() -> TaskStateSegment {
         TaskStateSegment {
-            privilege_stack_table: [VirtAddr::zero(); 3],
-            interrupt_stack_table: [VirtAddr::zero(); 7],
+            privilege_stack_table: [VirtualAddress::zero(); 3],
+            interrupt_stack_table: [VirtualAddress::zero(); 7],
             iomap_base: size_of::<TaskStateSegment>() as u16,
             reserved_1: 0,
             reserved_2: 0,
