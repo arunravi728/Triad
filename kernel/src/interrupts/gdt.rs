@@ -2,11 +2,11 @@ use crate::interrupts::privilege::KernelRings;
 use crate::interrupts::segment::SegmentSelector;
 use crate::interrupts::tss::TaskStateSegment;
 
+use crate::interrupts::structures::DescriptorTablePointer;
+use crate::memory::vaddr::VirtualAddress;
+
 use bitflags::bitflags;
 use core::arch::asm;
-
-use x86_64::addr::VirtAddr;
-use x86_64::instructions::tables::DescriptorTablePointer;
 
 // This command helps load an GDT. The commands stores the active GDT and its length. The lgdt
 // instruction expects a pointer to a data structure holding the start address of the GDT and its
@@ -105,7 +105,7 @@ impl GlobalDescriptorTable {
         use core::mem::size_of;
 
         let ptr = DescriptorTablePointer {
-            base: VirtAddr::new(self.table.as_ptr() as u64),
+            base: VirtualAddress::new(self.table.as_ptr() as u64),
             limit: (self.table.len() * size_of::<u64>() - 1) as u16,
         };
 

@@ -17,6 +17,7 @@ pub mod instructions;
 pub mod pic;
 pub mod privilege;
 pub mod segment;
+pub mod structures;
 pub mod tss;
 pub mod utils;
 

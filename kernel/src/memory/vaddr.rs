@@ -4,7 +4,7 @@ use core::ops::{Add, Sub};
 //
 // On x86_64 machines, only the lower 48 bits can be used. This is because x86_64 machines only
 // support 4 level page tables. Bits 48 - 63 is set via sign extension of the 48th bit.
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct VirtualAddress(u64);
 
 impl VirtualAddress {
