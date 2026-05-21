@@ -8,6 +8,7 @@ use crate::kprint;
 
 use crate::memory::page::PageFaultErrorCodes;
 use crate::memory::vaddr::VirtualAddress;
+use crate::registers::control::CR2;
 
 use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
 use spin::Mutex;
@@ -342,6 +343,8 @@ extern "C" fn page_fault_interrupt_handler(
         error_code,
         &*stack_frame
     );
+
+    log::info!("Page Fault Address (CR2) contents: {:#?}", CR2::read());
 
     crate::hlt()
 }

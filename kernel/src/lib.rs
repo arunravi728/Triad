@@ -9,6 +9,7 @@ use core::panic::PanicInfo;
 pub mod interrupts;
 pub mod memory;
 pub mod print;
+pub mod registers;
 
 #[cfg(test)]
 bootloader_api::entry_point!(test_kernel_main);
