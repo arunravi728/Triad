@@ -1,10 +1,13 @@
-use core::ops::{Add, Sub};
+use core::{
+    fmt,
+    ops::{Add, Sub},
+};
 
 // A 64 bit virtual address
 //
 // On x86_64 machines, only the lower 48 bits can be used. This is because x86_64 machines only
 // support 4 level page tables. Bits 48 - 63 is set via sign extension of the 48th bit.
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct VirtualAddress(u64);
 
 impl VirtualAddress {
@@ -29,6 +32,14 @@ impl VirtualAddress {
     #[inline]
     pub fn from_ptr<T: Sized>(ptr: *const T) -> Self {
         Self::new(ptr as u64)
+    }
+}
+
+impl fmt::Debug for VirtualAddress {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("VirtAddr")
+            .field(&format_args!("{:#x}", self.0))
+            .finish()
     }
 }
 
