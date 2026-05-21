@@ -1,6 +1,21 @@
 use bitflags::bitflags;
 
 bitflags! {
+    #[repr(transparent)]
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
+    pub struct PageFaultErrorCodes: u64 {
+        const PAGE_PROTECTION_VIOLATION = 1;
+        const WRITE_VIOLATION = 1 << 1;
+        const UNPRIVILEGED_USER = 1 << 2;
+        const MALFORMED_TABLE = 1 << 3;
+        const INSTRUCTION_FETCH = 1 << 4;
+        const PROTECTION_KEY = 1 << 5;
+        const SHADOW_STACK = 1 << 6;
+        const HUGE_PAGE = 1 << 7;
+    }
+}
+
+bitflags! {
     #[allow(dead_code)]
     #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
     pub struct PageTableFlags : u64 {

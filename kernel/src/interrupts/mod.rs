@@ -6,6 +6,7 @@ use crate::interrupts::segment::{Segment, SegmentSelector, CS, DS, ES, FS, GS, S
 use crate::interrupts::tss::load_tss;
 use crate::kprint;
 
+use crate::memory::page::PageFaultErrorCodes;
 use crate::memory::vaddr::VirtualAddress;
 
 use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
@@ -317,13 +318,14 @@ extern "C" fn breakpoint_interrupt_handler(stack_frame: &ExceptionStackFrame) {
     log::info!("\nEXCEPTION: BREAKPOINT\n{:#?}", &*stack_frame);
 }
 
-// The double fault error code is always 0. x86 expects the double fault handler to be diverging.
+// The double fault error code is always 0.
+// x86 expects the double fault handler to be diverging.
 extern "C" fn double_fault_interrupt_handler(
     stack_frame: &ExceptionStackFrame,
     error_code: u64,
 ) -> ! {
     log::info!(
-        "\nEXCEPTION: DOUBLE FAULT with error code {:?}\n{:#?}",
+        "\nEXCEPTION: DOUBLE FAULT with error code {:#?}\n{:#?}",
         error_code,
         &*stack_frame
     );
@@ -333,7 +335,7 @@ extern "C" fn double_fault_interrupt_handler(
 
 extern "C" fn page_fault_interrupt_handler(
     stack_frame: &ExceptionStackFrame,
-    error_code: u64,
+    error_code: PageFaultErrorCodes,
 ) -> ! {
     log::info!(
         "\nEXCEPTION: PAGE FAULT with error code {:?}\n{:#?}",
