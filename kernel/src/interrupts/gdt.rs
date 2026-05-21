@@ -2,7 +2,7 @@ use crate::interrupts::privilege::KernelRings;
 use crate::interrupts::segment::SegmentSelector;
 use crate::interrupts::tss::TaskStateSegment;
 
-use crate::interrupts::structures::DescriptorTablePointer;
+use crate::interrupts::dtp::DescriptorTablePointer;
 use crate::memory::vaddr::VirtualAddress;
 
 use bitflags::bitflags;

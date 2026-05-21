@@ -11,13 +11,13 @@ use crate::memory::vaddr::VirtualAddress;
 use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
 use spin::Mutex;
 
+pub mod dtp;
 pub mod gdt;
 pub mod idt;
 pub mod instructions;
 pub mod pic;
 pub mod privilege;
 pub mod segment;
-pub mod structures;
 pub mod tss;
 pub mod utils;
 

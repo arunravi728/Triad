@@ -1,6 +1,6 @@
+use crate::interrupts::dtp::DescriptorTablePointer;
 use crate::interrupts::privilege::KernelRings;
 use crate::interrupts::segment::{Segment, SegmentSelector, CS};
-use crate::interrupts::structures::DescriptorTablePointer;
 
 use crate::memory::vaddr::VirtualAddress;
 
