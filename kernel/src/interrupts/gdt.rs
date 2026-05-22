@@ -1,9 +1,10 @@
+use crate::interrupts::dtp::DescriptorTablePointer;
 use crate::interrupts::privilege::KernelRings;
-use crate::interrupts::segment::SegmentSelector;
 use crate::interrupts::tss::TaskStateSegment;
 
-use crate::interrupts::dtp::DescriptorTablePointer;
 use crate::memory::vaddr::VirtualAddress;
+
+use crate::registers::segment::SegmentSelector;
 
 use bitflags::bitflags;
 use core::arch::asm;

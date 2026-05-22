@@ -2,13 +2,14 @@ use lazy_static::lazy_static;
 
 use crate::interrupts::idt::IdtIndex;
 use crate::interrupts::pic::Pics;
-use crate::interrupts::segment::{Segment, SegmentSelector, CS, DS, ES, FS, GS, SS};
 use crate::interrupts::tss::load_tss;
 use crate::kprint;
 
 use crate::memory::page::PageFaultErrorCodes;
 use crate::memory::vaddr::VirtualAddress;
+
 use crate::registers::control::CR2;
+use crate::registers::segment::{Segment, SegmentSelector, CS, DS, ES, FS, GS, SS};
 
 use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
 use spin::Mutex;
@@ -19,7 +20,6 @@ pub mod idt;
 pub mod instructions;
 pub mod pic;
 pub mod privilege;
-pub mod segment;
 pub mod tss;
 pub mod utils;
 

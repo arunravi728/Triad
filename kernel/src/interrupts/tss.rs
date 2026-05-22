@@ -1,6 +1,6 @@
 use core::arch::asm;
 
-use crate::interrupts::segment::SegmentSelector;
+use crate::registers::segment::SegmentSelector;
 
 use crate::memory::vaddr::VirtualAddress;
 
