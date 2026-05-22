@@ -41,8 +41,11 @@ fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     let frame_buffer_struct = frame_buffer_option.unwrap();
 
     // Extract the raw frame buffer
-    let frame_buffer_info = frame_buffer_struct.info().clone();
+    let mut frame_buffer_info = frame_buffer_struct.info().clone();
     let raw_frame_buffer = frame_buffer_struct.buffer_mut();
+
+    // Trick the logger into swapping color channels (Yellow -> Cyan/Blue-Green)
+    frame_buffer_info.pixel_format = bootloader_api::info::PixelFormat::Rgb;
 
     print::log::init_logger(raw_frame_buffer, frame_buffer_info);
 
