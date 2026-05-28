@@ -56,3 +56,7 @@ name = "test-virtual-address-panic"
 harness = false
 name = "test-stack-overflow"
 
+[[test]]
+harness = false
+name = "test-should-page-fault"
+
