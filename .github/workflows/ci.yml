@@ -10,57 +10,34 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test:
-    name: Kernel Tests
+  build-and-unit-test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # Reads rust-toolchain.toml automatically — picks up the nightly pin,
-      # x86_64-unknown-none target, and components declared there.
-      - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          cache: false  # Handled by the actions/cache step below
-
-      - name: Install QEMU
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y qemu-system-x86
-
-      - name: Cache Cargo registry & build artifacts
-        uses: actions/cache@v4
-        continue-on-error: true  # Cache failure should never block CI
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml', 'rust-toolchain.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
-
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      
       - name: Build
         run: cargo build --bin qemu-uefi
 
       - name: Unit tests (lib)
         run: cargo ktest --lib
 
-      - name: Integration test — boot
-        run: cargo ktest --test test-boot
+  integration-tests:
+    needs: build-and-unit-test
+    name: Integration Test — ${{ matrix.test }}
+    runs-on: ubuntu-latest
 
-      - name: Integration test — should-panic
-        run: cargo ktest --test test-should-panic
+    strategy:
+      matrix:
+        test:
+          - test-boot
+          - test-should-panic
+          - test-stack-overflow
+          - test-virtual-address-panic
+          - test-should-page-fault
 
-      - name: Integration test — stack-overflow
-        run: cargo ktest --test test-stack-overflow
-
-      - name: Integration test — virtual-address-panic
-        run: cargo ktest --test test-virtual-address-panic
-      
-      - name: Integration test — page-fault-handler
-        run: cargo ktest --test test-should-page-fault
-
-
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Run ${{ matrix.test }}
+        run: cargo ktest --test ${{ matrix.test }}
