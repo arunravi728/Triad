@@ -39,3 +39,4 @@ triad-llvm-target.json
 # Added by cargo
 
 /target
+.antigravitycli/
