@@ -59,4 +59,8 @@ jobs:
 
       - name: Integration test — virtual-address-panic
         run: cargo ktest --test test-virtual-address-panic
+      
+      - name: Integration test — page-fault-handler
+        run: cargo ktest --test test-should-page-fault
+
 
