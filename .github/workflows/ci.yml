@@ -36,6 +36,7 @@ jobs:
           - test-virtual-address-panic
           - test-should-page-fault
           - test-divide-by-zero-error
+          - test-pic-interrupts
 
     steps:
       - uses: actions/checkout@v4
