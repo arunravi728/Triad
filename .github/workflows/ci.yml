@@ -35,6 +35,7 @@ jobs:
           - test-stack-overflow
           - test-virtual-address-panic
           - test-should-page-fault
+          - test-divide-by-zero-error
 
     steps:
       - uses: actions/checkout@v4

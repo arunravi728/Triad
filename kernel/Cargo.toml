@@ -60,3 +60,7 @@ name = "test-stack-overflow"
 harness = false
 name = "test-should-page-fault"
 
+[[test]]
+harness = false
+name = "test-divide-by-zero-error"
+

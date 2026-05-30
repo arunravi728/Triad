@@ -39,6 +39,7 @@ pub struct ExceptionStackFrame {
 // we need to run functions without a prologue. The [naked] attribute helps with this. Note we
 // cannot call anything but a naked_asm! call from a naked function. Hence, link Rust functions
 // to handle specific exceptions.
+#[macro_export]
 macro_rules! handler {
     ($name: ident) => {{
         #[unsafe(naked)]
