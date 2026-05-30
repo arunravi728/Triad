@@ -39,7 +39,7 @@ extern "C" fn timer_interrupt_handler(_stack_frame: &ExceptionStackFrame) {
 }
 
 fn test_main(_boot_info: &'static mut bootloader_api::BootInfo) -> ! {
-    kernel::serial_println!("Divide By Zero Error Test");
+    kernel::serial_println!("Cascaded PICs Interrupt Test");
 
     kernel::interrupts::testonly_gdt_init();
     IDT.load();
