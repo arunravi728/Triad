@@ -37,7 +37,9 @@ fn test_main(_boot_info: &'static mut bootloader_api::BootInfo) -> ! {
 
     kernel::interrupts::testonly_gdt_init();
     IDT.load();
-    generate_divide_bye_zero_error();
+
+    serial_print!("Generating divide by zero error");
+    generate_divide_by_zero_interrupt();
 
     serial_println!("[Test did not call divide by zero error handler]");
     exit_qemu(QemuExitCode::Failed);
@@ -47,10 +49,4 @@ fn test_main(_boot_info: &'static mut bootloader_api::BootInfo) -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     kernel::test_panic_handler(info);
-}
-
-#[allow(unconditional_panic)]
-fn generate_divide_bye_zero_error() {
-    serial_print!("Generating divide by zero error");
-    generate_divide_by_zero_interrupt();
 }

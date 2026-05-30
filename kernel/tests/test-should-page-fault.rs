@@ -3,6 +3,7 @@
 
 use core::panic::PanicInfo;
 use kernel::interrupts::idt::{IdtIndex, InterruptDescriptorTable};
+use kernel::interrupts::utils::generate_page_fault;
 use kernel::{exit_qemu, serial_print, serial_println, QemuExitCode};
 use lazy_static::lazy_static;
 
@@ -41,6 +42,8 @@ fn test_main(_boot_info: &'static mut bootloader_api::BootInfo) -> ! {
 
     kernel::interrupts::testonly_gdt_init();
     IDT.load();
+
+    serial_print!("Triggering a page fault");
     generate_page_fault();
 
     serial_println!("[Test did not trigger page fault]");
@@ -53,11 +56,4 @@ fn panic(_info: &PanicInfo) -> ! {
     serial_println!("[ok]");
     exit_qemu(QemuExitCode::Success);
     kernel::hlt()
-}
-
-fn generate_page_fault() {
-    serial_print!("Triggering a page fault");
-    unsafe {
-        *(0xdeadbeef as *mut u8) = 42;
-    };
 }
