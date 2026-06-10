@@ -3,7 +3,7 @@ use crate::memory::paddr::PhysicalAddress;
 use core::ops::RangeInclusive;
 
 // x86 uses a frame size of 4KB
-const FRAME_SIZE: u64 = 4096;
+pub const FRAME_SIZE: u64 = 4096;
 
 #[derive(Clone, Debug, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(C)]
