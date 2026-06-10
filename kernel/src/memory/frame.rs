@@ -40,6 +40,10 @@ pub struct FrameRange {
 
 impl FrameRange {
     pub fn new(start_frame: Frame, end_frame: Frame, is_inclusive: bool) -> FrameRange {
+        if (start_frame.start_address.address() + FRAME_SIZE) >= end_frame.start_address.address() {
+            panic!("Start Frame overlaps with end frame");
+        }
+
         FrameRange {
             start_frame,
             end_frame,
@@ -106,4 +110,15 @@ fn test_frame_range_creation_is_successful() {
     let inlusive_frame_range = FrameRange::new(start_frame, end_frame, /*is_inclusive*/ true);
     assert_eq!(inlusive_frame_range.num_frames(), 4);
     assert_eq!(inlusive_frame_range.address_range(), 0x18..=0x4017);
+}
+
+#[test_case]
+fn test_frame_range_creation_panics_on_illegal_input() {
+    let paddr1 = PhysicalAddress::new(0x18 + 3 * FRAME_SIZE);
+    let paddr2 = PhysicalAddress::new(0x18);
+
+    let start_frame = Frame::new(paddr1);
+    let end_frame = Frame::new(paddr2);
+
+    let frame_range = FrameRange::new(start_frame, end_frame, /*is_inclusive*/ false);
 }
