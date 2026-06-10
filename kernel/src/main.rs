@@ -20,7 +20,7 @@
 #![reexport_test_harness_main = "run_tests"]
 
 use core::panic::PanicInfo;
-use kernel::{hlt, interrupts, print};
+use kernel::{hlt, interrupts, print, registers::control::CR3};
 
 bootloader_api::entry_point!(kernel);
 
@@ -53,6 +53,12 @@ fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     log::info!("This OS was created in the year {}.", 2025);
 
     interrupts::init();
+
+    let (level_4_page_table, _) = CR3::read();
+    log::info!(
+        "Level 4 Page Table Start Address: {:#?}",
+        level_4_page_table.start_address()
+    );
 
     #[cfg(not(test))]
     interrupts::utils::generate_page_fault();
