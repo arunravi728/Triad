@@ -1,4 +1,4 @@
-use crate::memory::frame::{Frame, FRAME_SIZE};
+use crate::memory::frame::Frame;
 use crate::memory::paddr::PhysicalAddress;
 use crate::memory::vaddr::VirtualAddress;
 
@@ -56,9 +56,7 @@ impl CR3 {
         let pdbr_mask: u64 = 0x_000F_FFFF_FFFF_F000;
         let cr3_flags_mask: u64 = 0x_0000_0FFF;
 
-        let pdbr_start_address: u64 = (value & pdbr_mask) & !(FRAME_SIZE - 1);
-
-        let frame: Frame = Frame::new(PhysicalAddress::new(pdbr_start_address));
+        let frame: Frame = Frame::new(PhysicalAddress::new(value & pdbr_mask));
         let flags: CR3Flags = CR3Flags::from_bits_truncate(value & cr3_flags_mask);
 
         (frame, flags)
