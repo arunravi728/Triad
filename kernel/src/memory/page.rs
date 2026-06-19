@@ -39,6 +39,10 @@ pub struct PageRange {
 
 impl PageRange {
     pub fn new(start_page: Page, end_page: Page, is_inclusive: bool) -> PageRange {
+        if (start_page.start_address.address() + PAGE_SIZE) >= end_page.start_address.address() {
+            panic!("Start Page overlaps with end frame");
+        }
+
         PageRange {
             start_page,
             end_page,
