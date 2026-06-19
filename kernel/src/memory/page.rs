@@ -9,23 +9,15 @@ pub const PAGE_SIZE: u64 = 4096;
 #[repr(C)]
 pub struct Page {
     start_address: VirtualAddress,
-    size: u64,
 }
 
 impl Page {
     pub fn new(start_address: VirtualAddress) -> Page {
-        Page {
-            start_address,
-            size: PAGE_SIZE,
-        }
+        Page { start_address }
     }
 
     pub fn start_address(&self) -> VirtualAddress {
         self.start_address
-    }
-
-    pub fn size(&self) -> u64 {
-        self.size
     }
 }
 
@@ -91,7 +83,6 @@ fn test_page_creation_is_successful() {
     let page = Page::new(vaddr);
 
     assert_eq!(page.start_address.address(), 0x18);
-    assert_eq!(page.size(), PAGE_SIZE);
 }
 
 #[test_case]
