@@ -5,7 +5,7 @@ use crate::interrupts::pic::Pics;
 use crate::interrupts::tss::load_tss;
 use crate::kprint;
 
-use crate::memory::page::PageFaultErrorCodes;
+use crate::memory::page_table::PageFaultErrorCodes;
 use crate::memory::vaddr::VirtualAddress;
 
 use crate::registers::control::CR2;
