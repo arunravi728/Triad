@@ -70,19 +70,19 @@ impl FrameRange {
 
         if self.is_inclusive {
             return num_frames + 1;
-        } else {
-            return num_frames;
         }
+
+        return num_frames;
     }
 
     pub fn address_range(&self) -> RangeInclusive<u64> {
         if self.is_inclusive {
             return self.start_frame.start_address.address()
                 ..=(self.end_frame.start_address.address() + FRAME_SIZE - 1);
-        } else {
-            return self.start_frame.start_address.address()
-                ..=(self.end_frame.start_address.address() - 1);
         }
+
+        return self.start_frame.start_address.address()
+            ..=(self.end_frame.start_address.address() - 1);
     }
 }
 
