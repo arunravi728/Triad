@@ -197,7 +197,6 @@ impl IdtEntryOptions {
         )
     }
 
-    // TODO: Remove #[allow(dead_code)] once function is used.
     #[allow(dead_code)]
     fn set_descriptor_privilege_level(&mut self, kernel_ring: KernelRings) -> &mut Self {
         self.mut_value().set_bits(
