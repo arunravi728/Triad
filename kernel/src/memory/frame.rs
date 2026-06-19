@@ -12,13 +12,9 @@ pub struct Frame {
 }
 
 impl Frame {
-    pub fn new(start_address: PhysicalAddress) -> Frame {
-        Frame { start_address }
-    }
-
     // Returns a frame whose start address is the largest that is less than
     // the address provided.
-    pub fn with_address(paddr: PhysicalAddress) -> Frame {
+    pub fn new(paddr: PhysicalAddress) -> Frame {
         let address = PhysicalAddress::new(paddr.address() & !(FRAME_SIZE - 1));
         Frame {
             start_address: address,
@@ -92,7 +88,7 @@ fn test_frame_creation_is_successful() {
     let paddr = PhysicalAddress::new(0x18);
     let frame = Frame::new(paddr);
 
-    assert_eq!(frame.start_address().address(), 0x18);
+    assert_eq!(frame.start_address().address(), 0x00);
 }
 
 #[test_case]
@@ -105,17 +101,20 @@ fn test_frame_range_creation_is_successful() {
 
     let frame_range = FrameRange::new(start_frame, end_frame, /*is_inclusive*/ false);
     assert_eq!(frame_range.num_frames(), 3);
-    assert_eq!(frame_range.address_range(), 0x18..=0x3017);
+    assert_eq!(frame_range.address_range(), 0x00..=(3 * FRAME_SIZE - 1));
 
     let inlusive_frame_range = FrameRange::new(start_frame, end_frame, /*is_inclusive*/ true);
     assert_eq!(inlusive_frame_range.num_frames(), 4);
-    assert_eq!(inlusive_frame_range.address_range(), 0x18..=0x4017);
+    assert_eq!(
+        inlusive_frame_range.address_range(),
+        0x00..=(4 * FRAME_SIZE - 1)
+    );
 }
 
 #[test_case]
 fn test_frame_creation_with_in_between_address_successful() {
     let paddr = PhysicalAddress::new(2 * FRAME_SIZE - 1);
-    let frame = Frame::with_address(paddr);
+    let frame = Frame::new(paddr);
 
     assert_eq!(frame.start_address.address(), FRAME_SIZE);
 }
