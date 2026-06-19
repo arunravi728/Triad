@@ -16,6 +16,15 @@ impl Page {
         Page { start_address }
     }
 
+    // Returns a frame whose start address is the largest that is less than
+    // the address provided.
+    pub fn with_address(paddr: VirtualAddress) -> Page {
+        let address = VirtualAddress::new(paddr.address() & !(PAGE_SIZE - 1));
+        Page {
+            start_address: address,
+        }
+    }
+
     pub fn start_address(&self) -> VirtualAddress {
         self.start_address
     }
@@ -100,4 +109,12 @@ fn test_page_range_creation_is_successful() {
     let inlusive_page_range = PageRange::new(start_page, end_page, /*is_inclusive*/ true);
     assert_eq!(inlusive_page_range.num_pages(), 4);
     assert_eq!(inlusive_page_range.address_range(), 0x18..=0x4017);
+}
+
+#[test_case]
+fn test_page_creation_with_in_between_address_successful() {
+    let vaddr = VirtualAddress::new(2 * PAGE_SIZE - 1);
+    let frame = Page::with_address(vaddr);
+
+    assert_eq!(frame.start_address.address(), PAGE_SIZE);
 }
