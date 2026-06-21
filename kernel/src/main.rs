@@ -52,6 +52,13 @@ fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     log::info!("This is a toy Rust kernel.");
     log::info!("This OS was created in the year {}.", 2025);
 
+    log::info!("Physical Kernel Address: {:#x?}", boot_info.kernel_addr);
+    log::info!(
+        "Virtual Kernel Address: {:#x?}",
+        boot_info.kernel_image_offset
+    );
+    log::info!("Kernel Stack Length: {:#x?}", boot_info.kernel_stack_len);
+
     interrupts::init();
 
     let (level_4_page_table, _) = CR3::read();
