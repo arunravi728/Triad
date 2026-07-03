@@ -19,10 +19,17 @@
 // framework.
 #![reexport_test_harness_main = "run_tests"]
 
+use bootloader_api::{config::Mapping, BootloaderConfig};
 use core::panic::PanicInfo;
 use kernel::{hlt, interrupts, print, registers::control::CR3};
 
-bootloader_api::entry_point!(kernel);
+pub static BOOTLOADER_CONFIG: BootloaderConfig = {
+    let mut config = BootloaderConfig::new_default();
+    config.mappings.physical_memory = Some(Mapping::Dynamic);
+    config
+};
+
+bootloader_api::entry_point!(kernel, config = &BOOTLOADER_CONFIG);
 
 // Rust uses name mangling by default. Name mangling is the process of giving every function a
 // unique name. We do not want the Rust compiler to change the name of the _start function. This is
@@ -58,6 +65,10 @@ fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
         boot_info.kernel_image_offset
     );
     log::info!("Kernel Stack Length: {:#x?}", boot_info.kernel_stack_len);
+    log::info!(
+        "Physical memory mapping offset: {:#x?}",
+        boot_info.physical_memory_offset
+    );
 
     interrupts::init();
 
