@@ -21,7 +21,12 @@
 
 use bootloader_api::{config::Mapping, BootloaderConfig};
 use core::panic::PanicInfo;
-use kernel::{hlt, interrupts, print, registers::control::CR3};
+use kernel::{
+    hlt, interrupts,
+    memory::page_table::{get_page_table_ptr, PageTable},
+    print,
+    registers::control::CR3,
+};
 
 pub static BOOTLOADER_CONFIG: BootloaderConfig = {
     let mut config = BootloaderConfig::new_default();
@@ -56,6 +61,7 @@ fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
 
     print::log::init_logger(raw_frame_buffer, frame_buffer_info);
 
+    // Print useful information from the Bootloader
     log::info!("This is a toy Rust kernel.");
     log::info!("This OS was created in the year {}.", 2025);
 
@@ -70,16 +76,32 @@ fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
         boot_info.physical_memory_offset
     );
 
+    // Get the physical memory offset used to get the virtual address equivalent of the physical
+    // memory.
+    let physical_memory_offset: u64 = match boot_info.physical_memory_offset.into_option() {
+        Some(address) => address,
+        None => panic!("Physical memory offset not enabled in the bootloader"),
+    };
+
+    // Initialize all software and hardware interrupts.
     interrupts::init();
 
-    let (level_4_page_table, _) = CR3::read();
+    let (level_4_page_table_frame, _) = CR3::read();
     log::info!(
         "Level 4 Page Table Start Address: {:#?}",
-        level_4_page_table.start_address()
+        level_4_page_table_frame.start_address()
     );
 
-    #[cfg(not(test))]
-    interrupts::utils::generate_page_fault();
+    let l4_page_table: &'static mut PageTable = get_page_table_ptr(
+        physical_memory_offset,
+        level_4_page_table_frame.start_address(),
+    );
+
+    for (pti, pte) in l4_page_table.iter().enumerate() {
+        if !pte.is_unused() {
+            log::info!("L4 Entry {}: {:#?}", pti, pte);
+        }
+    }
 
     // We use Rust's conditional compilation feature here. This function is only called in unit
     // tests part of main.rs.
