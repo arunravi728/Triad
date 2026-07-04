@@ -8,40 +8,57 @@ use crate::memory::{
 use crate::registers::control::CR3;
 const PAGE_TABLE_LEVELS: RangeInclusive<u16> = 1..=4;
 
-#[inline]
-pub fn translate(vaddr: VirtualAddress, paddr_offset: u64) -> Option<PhysicalAddress> {
-    let (level_4_page_table_frame, _) = CR3::read();
-    let mut page_table_frame: Frame = level_4_page_table_frame;
+#[derive(Copy, Debug, Eq, PartialEq, Hash, Clone)]
+pub struct Paging {
+    paddr_offset: u64,
+    level_4_page_table_frame: Frame,
+}
 
-    for level in PAGE_TABLE_LEVELS.rev() {
-        let page_table: &PageTable =
-            unsafe { &*get_page_table_ptr(paddr_offset, page_table_frame.start_address()) };
-
-        let pte: &PageTableEntry = &page_table[vaddr.page_table_index(level) as usize];
-        page_table_frame = match pte.frame() {
-            Some(frame) => frame,
-            None => return None,
-        };
-
-        // If the HUGE_PAGE bit is set, it means the page table walk stops early and this entry
-        // points directly to a large contiguous block of physical memory (e.g. 2MB or 1GB).
-        if pte.flags().contains(PageTableFlags::HUGE_PAGE) {
-            // A standard page uses 12 bits for the offset (4KB).
-            // Each skipped page table level turns its 9 index bits into part of the offset.
-            // Level 2 (2MB): 12 + 9 = 21 bits. Level 3 (1GB): 12 + 18 = 30 bits.
-            let huge_page_offset_mask: u64 =
-                (1 << (PAGE_TABLE_OFFSET_LENGTH + (level - 1) * PAGE_TABLE_INDEX_LENGTH)) - 1;
-
-            return Some(PhysicalAddress::new(
-                page_table_frame.start_address().address()
-                    + (vaddr.address() & huge_page_offset_mask),
-            ));
+impl Paging {
+    #[inline]
+    pub fn init(paddr_offset: u64) -> Paging {
+        let (level_4_page_table_frame, _) = CR3::read();
+        Paging {
+            paddr_offset,
+            level_4_page_table_frame,
         }
     }
 
-    Some(PhysicalAddress::new(
-        page_table_frame.start_address().address() + vaddr.page_table_offset() as u64,
-    ))
+    #[inline]
+    pub fn translate(&self, vaddr: VirtualAddress) -> Option<PhysicalAddress> {
+        let mut page_table_frame: Frame = self.level_4_page_table_frame;
+
+        for level in PAGE_TABLE_LEVELS.rev() {
+            let page_table: &PageTable = unsafe {
+                &*get_page_table_ptr(self.paddr_offset, page_table_frame.start_address())
+            };
+
+            let pte: &PageTableEntry = &page_table[vaddr.page_table_index(level) as usize];
+            page_table_frame = match pte.frame() {
+                Some(frame) => frame,
+                None => return None,
+            };
+
+            // If the HUGE_PAGE bit is set, it means the page table walk stops early and this entry
+            // points directly to a large contiguous block of physical memory (e.g. 2MB or 1GB).
+            if pte.flags().contains(PageTableFlags::HUGE_PAGE) {
+                // A standard page uses 12 bits for the offset (4KB).
+                // Each skipped page table level turns its 9 index bits into part of the offset.
+                // Level 2 (2MB): 12 + 9 = 21 bits. Level 3 (1GB): 12 + 18 = 30 bits.
+                let huge_page_offset_mask: u64 =
+                    (1 << (PAGE_TABLE_OFFSET_LENGTH + (level - 1) * PAGE_TABLE_INDEX_LENGTH)) - 1;
+
+                return Some(PhysicalAddress::new(
+                    page_table_frame.start_address().address()
+                        + (vaddr.address() & huge_page_offset_mask),
+                ));
+            }
+        }
+
+        Some(PhysicalAddress::new(
+            page_table_frame.start_address().address() + vaddr.page_table_offset() as u64,
+        ))
+    }
 }
 
 // The kernel runs on paging. This means all the addresses obtained from registers like CR3 are

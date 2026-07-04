@@ -3,7 +3,7 @@
 
 use bootloader_api::{config::Mapping, BootloaderConfig};
 use core::panic::PanicInfo;
-use kernel::memory::{translate::translate, vaddr::VirtualAddress};
+use kernel::memory::{translate::Paging, vaddr::VirtualAddress};
 use kernel::{exit_qemu, serial_print, serial_println, QemuExitCode};
 
 pub static BOOTLOADER_CONFIG: BootloaderConfig = {
@@ -22,18 +22,21 @@ fn test_main(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
         None => panic!("Physical memory offset not enabled in the bootloader"),
     };
 
+    // Initialize address translation and the Level 4 page table
+    let paging: Paging = Paging::init(physical_memory_offset);
+
     // Test virtual address corresponding to physical address 0x0
     let vaddr_zero = VirtualAddress::new(physical_memory_offset);
-    let paddr_zero = translate(vaddr_zero, physical_memory_offset);
+    let paddr_zero = paging.translate(vaddr_zero);
     assert!(paddr_zero.is_some());
     assert_eq!(paddr_zero.unwrap().address(), 0x0);
 
     // Test VGA buffer address translation
-    let vga_paddr = 0xb8000;
-    let vga_vaddr = VirtualAddress::new(vga_paddr + physical_memory_offset);
-    let translated_vga = translate(vga_vaddr, physical_memory_offset);
+    let paddr_vga = 0xb8000;
+    let vaddr_vga = VirtualAddress::new(paddr_vga + physical_memory_offset);
+    let translated_vga = paging.translate(vaddr_vga);
     assert!(translated_vga.is_some());
-    assert_eq!(translated_vga.unwrap().address(), vga_paddr);
+    assert_eq!(translated_vga.unwrap().address(), paddr_vga);
 
     serial_println!("[ok]");
     exit_qemu(QemuExitCode::Success);

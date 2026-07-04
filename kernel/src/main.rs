@@ -23,7 +23,7 @@ use bootloader_api::{config::Mapping, BootloaderConfig};
 use core::panic::PanicInfo;
 use kernel::{
     hlt, interrupts,
-    memory::{translate::translate, vaddr::VirtualAddress},
+    memory::{translate::Paging, vaddr::VirtualAddress},
     print,
 };
 
@@ -72,8 +72,11 @@ fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     // Initialize all software and hardware interrupts.
     interrupts::init();
 
+    // Initialize address translation and the Level 4 page table
+    let paging: Paging = Paging::init(physical_memory_offset);
+
     let vaddr = VirtualAddress::new(physical_memory_offset);
-    let paddr = translate(vaddr, physical_memory_offset);
+    let paddr = paging.translate(vaddr);
     log::info!("{:?} -> {:?}", vaddr, paddr);
 
     // We use Rust's conditional compilation feature here. This function is only called in unit
