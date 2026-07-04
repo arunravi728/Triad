@@ -19,7 +19,6 @@ bitflags! {
 }
 
 bitflags! {
-    #[allow(dead_code)]
     #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
     pub struct PageTableFlags : u64 {
         // Indicates if the page is currently in memory
@@ -64,13 +63,11 @@ bitflags! {
 const PTE_PADDR_MASK: u64 = 0x000f_ffff_ffff_f000u64;
 
 // On x86_64 machines, the page table entry is 8 bytes large.
-#[allow(dead_code)]
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub struct PageTableEntry {
     entry: u64,
 }
 
-#[allow(dead_code)]
 impl PageTableEntry {
     #[inline]
     pub fn new() -> PageTableEntry {
@@ -110,7 +107,6 @@ impl fmt::Debug for PageTableEntry {
 // On x86_64 machines, each page table can have a maximum of 512 entries.
 const PTE_COUNT: usize = 512;
 
-#[allow(dead_code)]
 #[repr(align(4096))]
 pub struct PageTable([PageTableEntry; PTE_COUNT]);
 
