@@ -68,3 +68,6 @@ name = "test-divide-by-zero-error"
 harness = false
 name = "test-pic-interrupts"
 
+[[test]]
+harness = false
+name = "test-address-translation"

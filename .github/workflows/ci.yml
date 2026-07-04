@@ -37,6 +37,7 @@ jobs:
           - test-should-page-fault
           - test-divide-by-zero-error
           - test-pic-interrupts
+          - test-address-translation
 
     steps:
       - uses: actions/checkout@v4
