@@ -88,15 +88,32 @@ const PTE_COUNT: usize = 512;
 
 #[allow(dead_code)]
 #[repr(align(4096))]
-pub struct PageTable {
-    entries: [PageTableEntry; PTE_COUNT],
-}
+pub struct PageTable([PageTableEntry; PTE_COUNT]);
 
 impl PageTable {
     #[inline]
     pub fn new() -> PageTable {
-        PageTable {
-            entries: [PageTableEntry::new(); PTE_COUNT],
-        }
+        PageTable([PageTableEntry::new(); PTE_COUNT])
     }
+
+    #[inline]
+    pub fn iter(&self) -> impl Iterator<Item = &PageTableEntry> {
+        (0..PTE_COUNT).map(move |i| &self.0[i])
+    }
+}
+
+#[test_case]
+fn test_paget_table_iterator() {
+    let page_table = PageTable::new();
+
+    let mut test_pti: usize = 0;
+    let test_pte: PageTableEntry = PageTableEntry::new();
+
+    for (pti, pte) in page_table.iter().enumerate() {
+        assert_eq!(pti, test_pti);
+        assert_eq!(*pte, test_pte);
+        test_pti += 1;
+    }
+
+    assert_eq!(test_pti, PTE_COUNT as usize);
 }
