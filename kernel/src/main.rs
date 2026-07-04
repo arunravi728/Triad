@@ -22,9 +22,7 @@
 use bootloader_api::{config::Mapping, BootloaderConfig};
 use core::panic::PanicInfo;
 use kernel::{
-    hlt, interrupts,
-    memory::page_table::{get_page_table_ptr, PageTable},
-    print,
+    hlt, interrupts, memory::page_table::PageTable, memory::translate::get_page_table_ptr, print,
     registers::control::CR3,
 };
 
