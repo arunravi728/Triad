@@ -1,4 +1,5 @@
 use bitflags::bitflags;
+use core::fmt;
 
 use crate::memory::{paddr::PhysicalAddress, vaddr::VirtualAddress};
 
@@ -60,9 +61,11 @@ bitflags! {
     }
 }
 
+const PTE_PADDR_MASK: u64 = 0x000f_ffff_ffff_f000u64;
+
 // On x86_64 machines, the page table entry is 8 bytes large.
 #[allow(dead_code)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub struct PageTableEntry {
     entry: u64,
 }
@@ -82,6 +85,25 @@ impl PageTableEntry {
     #[inline]
     pub fn set_unused(&mut self) {
         self.entry = 0;
+    }
+
+    #[inline]
+    pub fn paddr(&self) -> PhysicalAddress {
+        PhysicalAddress::new(self.entry & PTE_PADDR_MASK)
+    }
+
+    #[inline]
+    pub fn flags(&self) -> PageTableFlags {
+        PageTableFlags::from_bits_retain(self.entry & !PTE_PADDR_MASK)
+    }
+}
+
+impl fmt::Debug for PageTableEntry {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut f = f.debug_struct("PageTableEntry");
+        f.field("paddr", &self.paddr());
+        f.field("flags", &self.flags());
+        f.finish()
     }
 }
 
@@ -129,7 +151,7 @@ pub fn get_page_table_ptr(
 }
 
 #[test_case]
-fn test_paget_table_iterator() {
+fn test_page_table_iterator() {
     let page_table = PageTable::new();
 
     let mut test_pti: usize = 0;

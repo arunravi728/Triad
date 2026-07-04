@@ -61,20 +61,7 @@ fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
 
     print::log::init_logger(raw_frame_buffer, frame_buffer_info);
 
-    // Print useful information from the Bootloader
-    log::info!("This is a toy Rust kernel.");
-    log::info!("This OS was created in the year {}.", 2025);
-
-    log::info!("Physical Kernel Address: {:#x?}", boot_info.kernel_addr);
-    log::info!(
-        "Virtual Kernel Address: {:#x?}",
-        boot_info.kernel_image_offset
-    );
-    log::info!("Kernel Stack Length: {:#x?}", boot_info.kernel_stack_len);
-    log::info!(
-        "Physical memory mapping offset: {:#x?}",
-        boot_info.physical_memory_offset
-    );
+    log::info!("Triad: A x86 kernel written in Rust");
 
     // Get the physical memory offset used to get the virtual address equivalent of the physical
     // memory.
