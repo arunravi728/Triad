@@ -22,8 +22,9 @@
 use bootloader_api::{config::Mapping, BootloaderConfig};
 use core::panic::PanicInfo;
 use kernel::{
-    hlt, interrupts, memory::page_table::PageTable, memory::translate::get_page_table_ptr, print,
-    registers::control::CR3,
+    hlt, interrupts,
+    memory::{translate::translate, vaddr::VirtualAddress},
+    print,
 };
 
 pub static BOOTLOADER_CONFIG: BootloaderConfig = {
@@ -71,22 +72,9 @@ fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     // Initialize all software and hardware interrupts.
     interrupts::init();
 
-    let (level_4_page_table_frame, _) = CR3::read();
-    log::info!(
-        "Level 4 Page Table Start Address: {:#?}",
-        level_4_page_table_frame.start_address()
-    );
-
-    let l4_page_table: &'static mut PageTable = get_page_table_ptr(
-        physical_memory_offset,
-        level_4_page_table_frame.start_address(),
-    );
-
-    for (pti, pte) in l4_page_table.iter().enumerate() {
-        if !pte.is_unused() {
-            log::info!("L4 Entry {}: {:#?}", pti, pte);
-        }
-    }
+    let vaddr = VirtualAddress::new(physical_memory_offset);
+    let paddr = translate(vaddr, physical_memory_offset);
+    log::info!("{:?} -> {:?}", vaddr, paddr);
 
     // We use Rust's conditional compilation feature here. This function is only called in unit
     // tests part of main.rs.

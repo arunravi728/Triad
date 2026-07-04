@@ -1,7 +1,17 @@
 use bitflags::bitflags;
 use core::fmt;
+use core::ops::{Index, IndexMut};
 
+use crate::memory::frame::Frame;
 use crate::memory::paddr::PhysicalAddress;
+
+pub const PAGE_TABLE_INDEX_LENGTH: u16 = 9; // Each page table index is 9 bits long
+pub const PAGE_TABLE_OFFSET_LENGTH: u16 = 12; // The page table offset is 12 bits long
+pub const PAGE_TABLE_OFFSET_MASK: u16 = 0x0FFF;
+pub const PTE_PADDR_MASK: u64 = 0x000f_ffff_ffff_f000u64;
+
+// On x86_64 machines, each page table can have a maximum of 512 entries.
+pub const PTE_COUNT: usize = 512;
 
 bitflags! {
     #[repr(transparent)]
@@ -60,8 +70,6 @@ bitflags! {
     }
 }
 
-const PTE_PADDR_MASK: u64 = 0x000f_ffff_ffff_f000u64;
-
 // On x86_64 machines, the page table entry is 8 bytes large.
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub struct PageTableEntry {
@@ -93,6 +101,15 @@ impl PageTableEntry {
     pub fn flags(&self) -> PageTableFlags {
         PageTableFlags::from_bits_retain(self.entry & !PTE_PADDR_MASK)
     }
+
+    #[inline]
+    pub fn frame(&self) -> Option<Frame> {
+        if !self.flags().contains(PageTableFlags::PRESENT) {
+            return None;
+        }
+
+        Some(Frame::new(self.paddr()))
+    }
 }
 
 impl fmt::Debug for PageTableEntry {
@@ -103,9 +120,6 @@ impl fmt::Debug for PageTableEntry {
         f.finish()
     }
 }
-
-// On x86_64 machines, each page table can have a maximum of 512 entries.
-const PTE_COUNT: usize = 512;
 
 #[repr(align(4096))]
 pub struct PageTable([PageTableEntry; PTE_COUNT]);
@@ -119,6 +133,22 @@ impl PageTable {
     #[inline]
     pub fn iter(&self) -> impl Iterator<Item = &PageTableEntry> {
         (0..PTE_COUNT).map(move |i| &self.0[i])
+    }
+}
+
+impl Index<usize> for PageTable {
+    type Output = PageTableEntry;
+
+    #[inline]
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
+    }
+}
+
+impl IndexMut<usize> for PageTable {
+    #[inline]
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.0[index]
     }
 }
 

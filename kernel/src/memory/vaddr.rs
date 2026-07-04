@@ -3,9 +3,9 @@ use core::{
     ops::{Add, Sub},
 };
 
-const PAGE_TABLE_INDEX_LENGTH: u16 = 9; // Each page table index is 9 bits long
-const PAGE_TABLE_OFFSET_LENGTH: u16 = 12; // The page table offset is 12 bits long
-const PAGE_TABLE_OFFSET_MASK: u16 = 0x0FFF;
+use crate::memory::page_table::{
+    PAGE_TABLE_INDEX_LENGTH, PAGE_TABLE_OFFSET_LENGTH, PAGE_TABLE_OFFSET_MASK,
+};
 
 // A 64 bit virtual address
 //
