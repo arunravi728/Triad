@@ -67,24 +67,36 @@ pub struct PageTableEntry {
 
 #[allow(dead_code)]
 impl PageTableEntry {
+    #[inline]
     pub fn new() -> PageTableEntry {
         PageTableEntry { entry: 0 }
     }
 
+    #[inline]
     pub fn is_unused(&self) -> bool {
         self.entry == 0
     }
 
+    #[inline]
     pub fn set_unused(&mut self) {
         self.entry = 0;
     }
 }
 
 // On x86_64 machines, each page table can have a maximum of 512 entries.
-const PAGE_TABLE_SIZE: usize = 512;
+const PTE_COUNT: usize = 512;
 
 #[allow(dead_code)]
 #[repr(align(4096))]
 pub struct PageTable {
-    entries: [PageTableEntry; PAGE_TABLE_SIZE],
+    entries: [PageTableEntry; PTE_COUNT],
+}
+
+impl PageTable {
+    #[inline]
+    pub fn new() -> PageTable {
+        PageTable {
+            entries: [PageTableEntry::new(); PTE_COUNT],
+        }
+    }
 }
