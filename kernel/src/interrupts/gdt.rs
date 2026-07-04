@@ -42,6 +42,7 @@ pub enum Descriptor {
 }
 
 impl Descriptor {
+    #[inline]
     pub fn kernel_code_segment() -> Descriptor {
         let flags = DescriptorFlags::USER_SEGMENT
             | DescriptorFlags::PRESENT
@@ -50,6 +51,7 @@ impl Descriptor {
         Descriptor::UserSegment(flags.bits())
     }
 
+    #[inline]
     pub fn kernel_data_segment() -> Descriptor {
         let flags =
             DescriptorFlags::USER_SEGMENT | DescriptorFlags::PRESENT | DescriptorFlags::WRITABLE;
@@ -59,6 +61,7 @@ impl Descriptor {
     // The layout of the TSS Segment can be found at https://os.phil-opp.com/double-faults/#tss-segments
     // We require the 'static lifetime for the TaskStateSegment reference, since the hardware might
     // access it on every interrupt as long as the OS runs.
+    #[inline]
     pub fn tss_segment(tss: &'static TaskStateSegment) -> Descriptor {
         use bit_field::BitField;
         use core::mem::size_of;
@@ -93,6 +96,7 @@ pub struct GlobalDescriptorTable {
 }
 
 impl GlobalDescriptorTable {
+    #[inline]
     pub fn new() -> GlobalDescriptorTable {
         GlobalDescriptorTable {
             table: [0; 8],
@@ -102,6 +106,7 @@ impl GlobalDescriptorTable {
         }
     }
 
+    #[inline]
     pub fn load(&'static self) {
         use core::mem::size_of;
 
@@ -113,6 +118,7 @@ impl GlobalDescriptorTable {
         unsafe { lgdt(&ptr) };
     }
 
+    #[inline]
     pub fn add(&mut self, entry: Descriptor) -> SegmentSelector {
         let index = match entry {
             Descriptor::UserSegment(val) => self.push(val),
@@ -125,6 +131,7 @@ impl GlobalDescriptorTable {
         SegmentSelector::new(index as u16, KernelRings::Ring0)
     }
 
+    #[inline]
     fn push(&mut self, value: u64) -> usize {
         if self.len >= self.table.len() {
             panic!("GDT FULL");

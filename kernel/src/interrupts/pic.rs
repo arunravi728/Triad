@@ -23,6 +23,7 @@ pub struct Pics {
 impl Pics {
     // This function needs to be const as it is used to create the Pics instance in a static
     // expression.
+    #[inline]
     pub const unsafe fn new(primary_offset: u8, secondary_offset: u8) -> Self {
         Pics {
             primary: Pic {
@@ -38,6 +39,7 @@ impl Pics {
         }
     }
 
+    #[inline]
     pub unsafe fn init(&mut self) {
         // Tell the two PICs we are sending the initialization sequence.
         self.primary.command_port.write(CMD_CASCADED_INIT);
@@ -69,10 +71,12 @@ impl Pics {
         self.secondary.data_port.write(0xFF);
     }
 
+    #[inline]
     pub unsafe fn disable(&mut self) {
         self.write_masks(CMD_DISABLE_PIC, CMD_DISABLE_PIC);
     }
 
+    #[inline]
     pub unsafe fn notify_end_of_interrupt(&mut self, interrupt_id: u8) {
         if self.handles_interrupt(interrupt_id) {
             if self.secondary.handles_interrupt(interrupt_id) {
@@ -82,15 +86,18 @@ impl Pics {
         }
     }
 
+    #[inline]
     pub fn handles_interrupt(&self, interrupt_id: u8) -> bool {
         self.primary.handles_interrupt(interrupt_id)
             || self.secondary.handles_interrupt(interrupt_id)
     }
 
+    #[inline]
     pub unsafe fn read_masks(&mut self) -> [u8; 2] {
         [self.primary.read_mask(), self.secondary.read_mask()]
     }
 
+    #[inline]
     pub unsafe fn write_masks(&mut self, primary_mask: u8, secondary_mask: u8) {
         self.primary.write_mask(primary_mask);
         self.secondary.write_mask(secondary_mask);
@@ -104,23 +111,28 @@ struct Pic {
 }
 
 impl Pic {
+    #[inline]
     unsafe fn end_interrupt(&mut self) {
         self.command_port.write(CMD_EOI);
     }
 
+    #[inline]
     unsafe fn read_mask(&mut self) -> u8 {
         self.data_port.read()
     }
 
+    #[inline]
     unsafe fn write_mask(&mut self, mask: u8) {
         self.data_port.write(mask);
     }
 
+    #[inline]
     fn handles_interrupt(&self, interrupt_id: u8) -> bool {
         self.idt_base_offset <= interrupt_id && interrupt_id < self.idt_base_offset + 8
     }
 }
 
+#[inline]
 unsafe fn io_wait() {
     let mut port: Port<u8> = Port::new(IO_WAIT_PORT);
     port.write(0);

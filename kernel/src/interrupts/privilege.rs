@@ -19,6 +19,7 @@ pub enum KernelRings {
 }
 
 impl KernelRings {
+    #[inline]
     pub fn new(privilege_level: u16) -> Self {
         match privilege_level {
             0 => KernelRings::Ring0,

@@ -24,6 +24,7 @@ fn test_kernel_main(_boot_info: &'static mut bootloader_api::BootInfo) -> ! {
 
 // The loop statement causes the CPU to wait endlessly making it inefficient. The hlt instructions
 // halts the CPU until the next interrupt arrives. This makes it a great replacement for loop.
+#[inline]
 pub fn hlt() -> ! {
     loop {
         unsafe {

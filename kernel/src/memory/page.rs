@@ -14,6 +14,7 @@ pub struct Page {
 impl Page {
     // Returns a page whose start address is the largest that is less than
     // the address provided.
+    #[inline]
     pub fn new(vaddr: VirtualAddress) -> Page {
         let address = VirtualAddress::new(vaddr.address() & !(PAGE_SIZE - 1));
         Page {
@@ -21,6 +22,7 @@ impl Page {
         }
     }
 
+    #[inline]
     pub fn start_address(&self) -> VirtualAddress {
         self.start_address
     }
@@ -35,6 +37,7 @@ pub struct PageRange {
 }
 
 impl PageRange {
+    #[inline]
     pub fn new(start_page: Page, end_page: Page, is_inclusive: bool) -> PageRange {
         if (start_page.start_address.address() + PAGE_SIZE) >= end_page.start_address.address() {
             panic!("Start Page overlaps with end frame");
@@ -47,18 +50,22 @@ impl PageRange {
         }
     }
 
+    #[inline]
     pub fn start_page(&self) -> Page {
         self.start_page
     }
 
+    #[inline]
     pub fn end_page(&self) -> Page {
         self.end_page
     }
 
+    #[inline]
     pub fn is_inclusive(&self) -> bool {
         self.is_inclusive
     }
 
+    #[inline]
     pub fn num_pages(&self) -> u64 {
         let num_pages = (self.end_page.start_address.address()
             - self.start_page.start_address.address())
@@ -71,6 +78,7 @@ impl PageRange {
         return num_pages;
     }
 
+    #[inline]
     pub fn address_range(&self) -> RangeInclusive<u64> {
         if self.is_inclusive {
             return self.start_page.start_address.address()

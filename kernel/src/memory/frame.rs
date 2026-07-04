@@ -14,6 +14,7 @@ pub struct Frame {
 impl Frame {
     // Returns a frame whose start address is the largest that is less than
     // the address provided.
+    #[inline]
     pub fn new(paddr: PhysicalAddress) -> Frame {
         let address = PhysicalAddress::new(paddr.address() & !(FRAME_SIZE - 1));
         Frame {
@@ -21,6 +22,7 @@ impl Frame {
         }
     }
 
+    #[inline]
     pub fn start_address(&self) -> PhysicalAddress {
         self.start_address
     }
@@ -36,6 +38,7 @@ pub struct FrameRange {
 }
 
 impl FrameRange {
+    #[inline]
     pub fn new(start_frame: Frame, end_frame: Frame, is_inclusive: bool) -> FrameRange {
         if (start_frame.start_address.address() + FRAME_SIZE) >= end_frame.start_address.address() {
             panic!("Start Frame overlaps with end frame");
@@ -48,18 +51,22 @@ impl FrameRange {
         }
     }
 
+    #[inline]
     pub fn start_frame(&self) -> Frame {
         self.start_frame
     }
 
+    #[inline]
     pub fn end_frame(&self) -> Frame {
         self.end_frame
     }
 
+    #[inline]
     pub fn is_inclusive(&self) -> bool {
         self.is_inclusive
     }
 
+    #[inline]
     pub fn num_frames(&self) -> u64 {
         let num_frames: u64 = (self.end_frame.start_address.address()
             - self.start_frame.start_address.address())
@@ -72,6 +79,7 @@ impl FrameRange {
         return num_frames;
     }
 
+    #[inline]
     pub fn address_range(&self) -> RangeInclusive<u64> {
         if self.is_inclusive {
             return self.start_frame.start_address.address()

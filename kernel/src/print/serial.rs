@@ -30,6 +30,7 @@ macro_rules! serial_print {
 }
 
 #[doc(hidden)]
+#[inline]
 pub fn _serial_print(args: ::core::fmt::Arguments) {
     use crate::interrupts::instructions::run_without_interrupts;
     use core::fmt::Write;

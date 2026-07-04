@@ -13,6 +13,7 @@ pub struct KernelLogger {
 }
 
 impl KernelLogger {
+    #[inline]
     pub fn new(
         framebuffer: &'static mut [u8],
         info: FrameBufferInfo,
@@ -26,6 +27,7 @@ impl KernelLogger {
         KernelLogger { framebuffer }
     }
 
+    #[inline]
     pub fn print_raw(&self, args: core::fmt::Arguments) {
         if let Some(framebuffer) = &self.framebuffer {
             let mut framebuffer = framebuffer.lock();
@@ -37,6 +39,7 @@ impl KernelLogger {
     //
     // ## Safety
     // This method is not memory safe and should be only used when absolutely necessary.
+    #[inline]
     pub unsafe fn force_unlock(&self) {
         if let Some(framebuffer) = &self.framebuffer {
             unsafe { framebuffer.force_unlock() };
@@ -63,6 +66,7 @@ macro_rules! kprintln {
 }
 
 #[doc(hidden)]
+#[inline]
 pub fn _print(args: core::fmt::Arguments) {
     use crate::interrupts::instructions::run_without_interrupts;
 
@@ -74,10 +78,12 @@ pub fn _print(args: core::fmt::Arguments) {
 }
 
 impl log::Log for KernelLogger {
+    #[inline]
     fn enabled(&self, _metadata: &log::Metadata) -> bool {
         true
     }
 
+    #[inline]
     fn log(&self, record: &log::Record) {
         use crate::interrupts::instructions::run_without_interrupts;
 
@@ -89,9 +95,11 @@ impl log::Log for KernelLogger {
         }
     }
 
+    #[inline]
     fn flush(&self) {}
 }
 
+#[inline]
 pub fn init_logger(buffer: &'static mut [u8], info: FrameBufferInfo) {
     let logger = LOGGER.get_or_init(move || KernelLogger::new(buffer, info, true));
     log::set_logger(logger).expect("Logger already set");

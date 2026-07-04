@@ -146,6 +146,7 @@ macro_rules! handler_with_error_code {
     }}
 }
 
+#[inline]
 pub fn enable_hardware_interrupts() {
     unsafe {
         core::arch::asm!("sti", options(preserves_flags, nostack));
@@ -254,6 +255,7 @@ pub const SECONDARY_PIC_OFFSET: u8 = 112;
 pub static PICS: spin::Mutex<Pics> =
     spin::Mutex::new(unsafe { Pics::new(PRIMARY_PIC_OFFSET, SECONDARY_PIC_OFFSET) });
 
+#[inline]
 pub fn testonly_gdt_init() {
     GDT.table.load();
 
@@ -273,6 +275,7 @@ pub fn testonly_gdt_init() {
     }
 }
 
+#[inline]
 pub fn init() {
     log::info!("Load the GDT");
     GDT.table.load();

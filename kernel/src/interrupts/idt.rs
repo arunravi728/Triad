@@ -64,12 +64,14 @@ pub enum IdtIndex {
 pub struct InterruptDescriptorTable([IdtEntry; 256]);
 
 impl InterruptDescriptorTable {
+    #[inline]
     pub fn new() -> Self {
         // Initializes all 256 entries as empty.
         // This ensures the 'Present' bit is 0 for every entry by default.
         Self([IdtEntry::empty(); 256])
     }
 
+    #[inline]
     pub fn add_interrupt_handler(
         &mut self,
         interrupt_index: IdtIndex,
@@ -81,6 +83,7 @@ impl InterruptDescriptorTable {
 
     // When we load out IDT, we want to ensure that it is valid as long as the kernel runs. Thus, we
     // use a static lifetime.
+    #[inline]
     pub fn load(&'static self) {
         use core::mem::size_of;
 
@@ -92,6 +95,7 @@ impl InterruptDescriptorTable {
         unsafe { lidt(&ptr) };
     }
 
+    #[inline]
     fn table(&mut self) -> &mut [IdtEntry; 256] {
         &mut self.0
     }
@@ -118,6 +122,7 @@ pub struct IdtEntry {
 }
 
 impl IdtEntry {
+    #[inline]
     fn new(handler: InterruptHandler, segement_selector: SegmentSelector) -> Self {
         // The address to the handler is a 64 bit value.
         let isr_address = handler as u64;
@@ -134,6 +139,7 @@ impl IdtEntry {
         }
     }
 
+    #[inline]
     fn empty() -> Self {
         IdtEntry {
             isr_address_low: 0,
@@ -164,25 +170,30 @@ impl IdtEntryOptions {
     const DESCRIPTOR_PRIVILEGE_BITS: RangeInclusive<usize> = 13..=14;
     const PRESENT_BIT: usize = 15;
 
+    #[inline]
     fn new() -> Self {
         let options = IdtEntryOptions(0);
         options
     }
 
     #[cfg(test)]
+    #[inline]
     fn value(&self) -> u16 {
         self.0
     }
 
+    #[inline]
     fn mut_value(&mut self) -> &mut u16 {
         &mut self.0
     }
 
     #[cfg(test)]
+    #[inline]
     fn present(&self) -> bool {
         self.value().get_bit(IdtEntryOptions::PRESENT_BIT)
     }
 
+    #[inline]
     fn set_present(&mut self, present: bool) -> &mut Self {
         self.mut_value()
             .set_bit(IdtEntryOptions::PRESENT_BIT, present);
@@ -190,6 +201,7 @@ impl IdtEntryOptions {
     }
 
     #[cfg(test)]
+    #[inline]
     fn descriptor_privilege_level(&self) -> KernelRings {
         KernelRings::new(
             self.value()
@@ -198,6 +210,7 @@ impl IdtEntryOptions {
     }
 
     #[allow(dead_code)]
+    #[inline]
     fn set_descriptor_privilege_level(&mut self, kernel_ring: KernelRings) -> &mut Self {
         self.mut_value().set_bits(
             IdtEntryOptions::DESCRIPTOR_PRIVILEGE_BITS,
@@ -207,10 +220,12 @@ impl IdtEntryOptions {
     }
 
     #[cfg(test)]
+    #[inline]
     fn gate_type(&self) -> GateType {
         GateType::new(self.value().get_bits(IdtEntryOptions::GATE_TYPE_BITS))
     }
 
+    #[inline]
     fn set_gate_type(&mut self, gate_type: GateType) -> &mut Self {
         self.mut_value()
             .set_bits(IdtEntryOptions::GATE_TYPE_BITS, gate_type as u16);
@@ -218,11 +233,13 @@ impl IdtEntryOptions {
     }
 
     #[cfg(test)]
+    #[inline]
     fn interrupt_stack_table_offset(&self) -> u16 {
         self.value()
             .get_bits(IdtEntryOptions::INTERRUPT_STACK_TABLE_OFFSET_BITS)
     }
 
+    #[inline]
     pub fn set_interrupt_stack_table_offset(&mut self, offset: u8) -> &mut Self {
         if offset > 7 {
             panic!("Interrupt stack table offset is a bit value, cannot be greater than 7.")
@@ -263,6 +280,7 @@ const _: () = {
 };
 
 impl GateType {
+    #[inline]
     pub fn new(gate_type: u16) -> Self {
         match gate_type {
             0x0E => GateType::InterruptGateType,

@@ -1,4 +1,5 @@
 #[allow(dead_code)]
+#[inline]
 pub fn generate_divide_by_zero_interrupt() {
     unsafe {
         core::arch::asm!(
@@ -12,6 +13,7 @@ pub fn generate_divide_by_zero_interrupt() {
 }
 
 #[allow(dead_code)]
+#[inline]
 pub fn generate_invalid_opcode_interrupt() {
     unsafe {
         core::arch::asm!("ud2");
@@ -19,6 +21,7 @@ pub fn generate_invalid_opcode_interrupt() {
 }
 
 #[allow(dead_code)]
+#[inline]
 pub fn generate_breakpoint() {
     unsafe {
         core::arch::asm!("int3", options(nomem, nostack));
@@ -26,6 +29,7 @@ pub fn generate_breakpoint() {
 }
 
 #[allow(dead_code)]
+#[inline]
 pub fn generate_page_fault() {
     unsafe {
         *(0xdeadbeef as *mut u8) = 42;

@@ -11,10 +11,12 @@ pub struct Draw<'f> {
 }
 
 impl<'f> Draw<'f> {
+    #[inline]
     pub fn new(framebuffer: &'f mut FrameBuffer) -> Self {
         Draw { framebuffer }
     }
 
+    #[inline]
     fn draw_pixel(&mut self, Pixel(position, color): Pixel<Rgb888>) {
         let width = self.framebuffer.info().width;
         let height = self.framebuffer.info().height;
@@ -54,6 +56,7 @@ impl<'f> DrawTarget for Draw<'f> {
 }
 
 impl<'f> OriginDimensions for Draw<'f> {
+    #[inline]
     fn size(&self) -> Size {
         let info = self.framebuffer.info();
 
@@ -61,6 +64,7 @@ impl<'f> OriginDimensions for Draw<'f> {
     }
 }
 
+#[inline]
 pub fn set_pixel(framebuffer: &mut FrameBuffer, position: Position, color: Color) {
     let info: FrameBufferInfo = framebuffer.info();
 
