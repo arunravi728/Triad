@@ -3,6 +3,10 @@ use core::{
     ops::{Add, Sub},
 };
 
+const PAGE_TABLE_INDEX_LENGTH: u16 = 9; // Each page table index is 9 bits long
+const PAGE_TABLE_OFFSET_LENGTH: u16 = 12; // The page table offset is 12 bits long
+const PAGE_TABLE_OFFSET_MASK: u16 = 0x0FFF;
+
 // A 64 bit virtual address
 //
 // On x86_64 machines, only the lower 48 bits can be used. This is because x86_64 machines only
@@ -32,6 +36,21 @@ impl VirtualAddress {
     #[inline]
     pub fn from_ptr<T: Sized>(ptr: *const T) -> Self {
         Self::new(ptr as u64)
+    }
+
+    #[inline]
+    pub fn page_table_index(&self, level: u16) -> u16 {
+        if level == 0 || level > 4 {
+            panic!("Invalid page table level: {:#?}", level);
+        }
+
+        (self.0 >> PAGE_TABLE_OFFSET_LENGTH >> (level - 1) * PAGE_TABLE_INDEX_LENGTH) as u16
+            % 512 as u16
+    }
+
+    #[inline]
+    pub fn page_table_offset(&self) -> u16 {
+        self.0 as u16 & PAGE_TABLE_OFFSET_MASK
     }
 }
 
@@ -141,4 +160,21 @@ fn test_subtracting_virtual_addresses_is_successful() {
     let b = VirtualAddress::new(0x06);
     let c = a - b;
     assert_eq!(c.address(), 0x04);
+}
+
+#[test_case]
+fn test_page_table_index_is_computed_successfully() {
+    let address = (0x0A << 39) | (0x0B << 30) | (0x0C << 21) | (0x0D << 12);
+    let vaddr = VirtualAddress::new(address);
+    assert_eq!(vaddr.page_table_index(1), 0x0D);
+    assert_eq!(vaddr.page_table_index(2), 0x0C);
+    assert_eq!(vaddr.page_table_index(3), 0x0B);
+    assert_eq!(vaddr.page_table_index(4), 0x0A);
+}
+
+#[test_case]
+fn test_page_table_offset_is_computed_successfully() {
+    let address = (4 << 39) | (3 << 30) | (2 << 21) | (1 << 12) | 0x728;
+    let vaddr = VirtualAddress::new(address);
+    assert_eq!(vaddr.page_table_offset(), 0x728);
 }
