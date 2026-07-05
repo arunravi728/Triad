@@ -103,18 +103,28 @@ impl Writer {
 
     fn write_rendered_char(&mut self, rendered_char: RasterizedChar) {
         for (y, row) in rendered_char.raster().iter().enumerate() {
-            for (x, _) in row.iter().enumerate() {
-                self.write_pixel(self.pos.x + x, self.pos.y + y);
+            for (x, byte) in row.iter().enumerate() {
+                self.write_pixel(self.pos.x + x, self.pos.y + y, *byte);
             }
         }
         self.pos.x += rendered_char.width() + LETTER_SPACING;
     }
 
-    fn write_pixel(&mut self, x: usize, y: usize) {
+    fn write_pixel(&mut self, x: usize, y: usize, intensity: u8) {
         let pixel_offset = y * self.info.stride + x;
         let color = match self.info.pixel_format {
-            PixelFormat::Rgb => [self.color.red, self.color.green, self.color.blue, 0],
-            PixelFormat::Bgr => [self.color.blue, self.color.green, self.color.red, 0],
+            PixelFormat::Rgb => [
+                (self.color.red as u16 * intensity as u16 / 255) as u8,
+                (self.color.green as u16 * intensity as u16 / 255) as u8,
+                (self.color.blue as u16 * intensity as u16 / 255) as u8,
+                0,
+            ],
+            PixelFormat::Bgr => [
+                (self.color.blue as u16 * intensity as u16 / 255) as u8,
+                (self.color.green as u16 * intensity as u16 / 255) as u8,
+                (self.color.red as u16 * intensity as u16 / 255) as u8,
+                0,
+            ],
             other => {
                 // set a supported (but invalid) pixel format before panicking to avoid a double
                 // panic; it might not be readable though

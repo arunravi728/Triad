@@ -1,15 +1,16 @@
 use bootloader_api::info::FrameBufferInfo;
-use bootloader_x86_64_common::framebuffer::FrameBufferWriter;
 use conquer_once::spin::OnceCell;
 use core::fmt::Write;
 use spinning_top::Spinlock;
+
+use crate::print::writer::Writer;
 
 // The global logger instance used for the `log` crate.
 pub static LOGGER: OnceCell<KernelLogger> = OnceCell::uninit();
 
 // A logger instance protected by a spinlock.
 pub struct KernelLogger {
-    framebuffer: Option<Spinlock<FrameBufferWriter>>,
+    framebuffer: Option<Spinlock<Writer>>,
 }
 
 impl KernelLogger {
@@ -20,7 +21,7 @@ impl KernelLogger {
         frame_buffer_logger_status: bool,
     ) -> Self {
         let framebuffer = match frame_buffer_logger_status {
-            true => Some(Spinlock::new(FrameBufferWriter::new(framebuffer, info))),
+            true => Some(Spinlock::new(Writer::new(framebuffer, info))),
             false => None,
         };
 
