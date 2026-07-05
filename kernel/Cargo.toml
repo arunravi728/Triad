@@ -24,7 +24,7 @@ test = true
 
 [dependencies]
 bit_field = "0.10.1"
-noto-sans-mono-bitmap = "0.3.2"
+noto-sans-mono-bitmap = { version = "0.3.2", default-features = false, features = ["regular", "size_20", "unicode-basic-latin"] }
 bitflags = "2.10.0"
 bootloader_api = "0.11.2"
 bootloader-x86_64-common = "0.11.3"
