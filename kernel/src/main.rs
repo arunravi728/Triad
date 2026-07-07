@@ -23,7 +23,7 @@ use bootloader_api::{config::Mapping, BootloaderConfig};
 use core::panic::PanicInfo;
 use kernel::{
     hlt, interrupts,
-    memory::{translate::Paging, vaddr::VirtualAddress},
+    memory::{paging::Paging, vaddr::VirtualAddress},
     print,
 };
 

@@ -3,7 +3,7 @@
 
 use bootloader_api::{config::Mapping, BootloaderConfig};
 use core::panic::PanicInfo;
-use kernel::memory::{translate::Paging, vaddr::VirtualAddress};
+use kernel::memory::{paging::Paging, vaddr::VirtualAddress};
 use kernel::{exit_qemu, serial_print, serial_println, QemuExitCode};
 
 pub static BOOTLOADER_CONFIG: BootloaderConfig = {
