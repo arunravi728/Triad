@@ -17,10 +17,10 @@ jobs:
       - uses: ./.github/actions/setup
       
       - name: Build
-        run: cargo build --bin qemu-uefi
+        run: cargo build --locked --bin qemu-uefi
 
       - name: Unit tests (lib)
-        run: cargo ktest --lib
+        run: cargo ktest --locked --lib
 
   integration-tests:
     needs: build-and-unit-test
@@ -43,4 +43,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
       - name: Run ${{ matrix.test }}
-        run: cargo ktest --test ${{ matrix.test }}
+        run: cargo ktest --locked --test ${{ matrix.test }}

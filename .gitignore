@@ -14,7 +14,9 @@ target
 **/mutants.out*/
 
 # Cargo
-Cargo.lock
+# We don't ignore Cargo.lock on purpose. We use the nightly version of the Rust compiler,
+# which tends to be unstable. Thus to have a reproducible kernel, we also commit the 
+# Cargo.lock file.
 Cargo.html
 Cargo.pdf
 Cargo.toml.orig
