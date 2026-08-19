@@ -49,9 +49,9 @@ impl Writer {
             info,
             pos: Position { x: 0, y: 0 },
             color: Color {
-                red: 15,
-                green: 157,
-                blue: 88,
+                red: 52,
+                green: 168,
+                blue: 83,
             },
         };
         logger.clear();
