@@ -1,5 +1,13 @@
 # Triad
-A toy operating system written in Rust. The kernel currently supports - 
+A toy operating system written in Rust.
+
+The reasons I started developing Triad are three fold - 
+
+1. Learn how an Operating System is built.
+2. Get an in-depth understanding of concurrency.
+3. Understand the Rust programming language.
+
+## Feature Set
 
 1. UEFI Bootloader
 2. Framebuffer Support
@@ -23,6 +31,9 @@ cargo ktest --lib
 # Run specific kernel integration test
 cargo ktest --test <test-name>
 ```
+## AI Use
+
+I used AI chatbots mainly as a supercharged search engine to look up concepts and work through ideas. Use of agentic AI harnesses to generate code was kept to a minimum. Almost every line of code was read, understood, and written by hand.
 
 ## Acknowledgements
 This Rust OS was created with the help of the following resources - 
