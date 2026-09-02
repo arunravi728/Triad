@@ -12,12 +12,12 @@ pub mod print;
 pub mod registers;
 
 #[cfg(test)]
-bootloader_api::entry_point!(test_kernel_main);
+bootloader_api::entry_point!(test_kernel);
 
 // This entry point is for all unit tests belonging to modules linked to lib.rs. We have a separate
 // entry point in the main function for all unit tests part of main.rs.
 #[cfg(test)]
-fn test_kernel_main(_boot_info: &'static mut bootloader_api::BootInfo) -> ! {
+fn test_kernel(_boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     run_tests();
     hlt();
 }
