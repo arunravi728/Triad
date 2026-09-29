@@ -33,7 +33,14 @@ cargo ktest --test <test-name>
 ```
 ## AI Use
 
-I used AI chatbots mainly as a supercharged search engine to look up concepts and work through ideas. Use of agentic AI harnesses to generate code was kept to a minimum. Almost every line of code was read, understood, and written by hand.
+Triad is a toy OS whose primary purpose is to improve my fundamentals in -
+1. Operating Systems
+2. Concurrency
+3. The Rust Programming Language
+
+For this purpose, use of agentic AI harnesses to generate code was kept to a minimum. Almost every line of code was read, understood, and written by hand.
+
+However, I did use AI chatbots mainly as a supercharged search engine to look up concepts and work through ideas.
 
 ## Acknowledgements
 This Rust OS was created with the help of the following resources - 
