@@ -67,3 +67,106 @@ fn test_base_usable_memory_region() {
     );
     assert!(allocator.allocate().is_none());
 }
+
+#[test_case]
+#[allow(static_mut_refs)]
+fn test_unsable_regions_are_skipped() {
+    static mut REGIONS: [MemoryRegion; 3] = [
+        MemoryRegion {
+            start: 0,
+            end: FRAME_SIZE,
+            kind: MemoryRegionKind::Usable,
+        },
+        MemoryRegion {
+            start: FRAME_SIZE,
+            end: 3 * FRAME_SIZE,
+            kind: MemoryRegionKind::Bootloader,
+        },
+        MemoryRegion {
+            start: 3 * FRAME_SIZE,
+            end: 4 * FRAME_SIZE,
+            kind: MemoryRegionKind::Usable,
+        },
+    ];
+
+    static mut STORAGE: Option<MemoryRegions> = None;
+
+    let memory_regions: &'static MemoryRegions = unsafe {
+        STORAGE = Some((&mut REGIONS[..]).into());
+        STORAGE.as_ref().unwrap()
+    };
+
+    let mut allocator = unsafe { FrameAllocator::init(memory_regions) };
+
+    assert_eq!(allocator.allocate().unwrap().start_address().address(), 0);
+    assert_eq!(
+        allocator.allocate().unwrap().start_address().address(),
+        3 * FRAME_SIZE
+    );
+    assert!(allocator.allocate().is_none());
+}
+
+#[test_case]
+#[allow(static_mut_refs)]
+fn test_non_aligned_allocations() {
+    static mut REGIONS: [MemoryRegion; 2] = [
+        MemoryRegion {
+            start: 0,
+            end: 100,
+            kind: MemoryRegionKind::Usable,
+        },
+        MemoryRegion {
+            start: FRAME_SIZE + 100,
+            end: 2 * FRAME_SIZE + 300,
+            kind: MemoryRegionKind::Usable,
+        },
+    ];
+
+    static mut STORAGE: Option<MemoryRegions> = None;
+
+    let memory_regions: &'static MemoryRegions = unsafe {
+        STORAGE = Some((&mut REGIONS[..]).into());
+        STORAGE.as_ref().unwrap()
+    };
+
+    let mut allocator = unsafe { FrameAllocator::init(memory_regions) };
+
+    assert_eq!(allocator.allocate().unwrap().start_address().address(), 0);
+    assert_eq!(
+        allocator.allocate().unwrap().start_address().address(),
+        FRAME_SIZE
+    );
+    assert_eq!(
+        allocator.allocate().unwrap().start_address().address(),
+        2 * FRAME_SIZE
+    );
+    assert!(allocator.allocate().is_none());
+}
+
+#[test_case]
+#[allow(static_mut_refs)]
+fn test_allocator_returns_none() {
+    static mut REGIONS: [MemoryRegion; 2] = [
+        MemoryRegion {
+            start: 0,
+            end: FRAME_SIZE,
+            kind: MemoryRegionKind::Bootloader,
+        },
+        MemoryRegion {
+            start: FRAME_SIZE,
+            end: 2 * FRAME_SIZE,
+            kind: MemoryRegionKind::Bootloader,
+        },
+    ];
+
+    static mut STORAGE: Option<MemoryRegions> = None;
+
+    let memory_regions: &'static MemoryRegions = unsafe {
+        STORAGE = Some((&mut REGIONS[..]).into());
+        STORAGE.as_ref().unwrap()
+    };
+
+    let mut allocator = unsafe { FrameAllocator::init(memory_regions) };
+
+    assert!(allocator.allocate().is_none());
+}
