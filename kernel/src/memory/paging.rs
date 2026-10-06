@@ -39,19 +39,23 @@ impl Paging {
                 None => return None,
             };
 
-            // If the HUGE_PAGE bit is set, it means the page table walk stops early and this entry
-            // points directly to a large contiguous block of physical memory (e.g. 2MB or 1GB).
-            if pte.flags().contains(PageTableFlags::HUGE_PAGE) {
-                // A standard page uses 12 bits for the offset (4KB).
-                // Each skipped page table level turns its 9 index bits into part of the offset.
-                // Level 2 (2MB): 12 + 9 = 21 bits. Level 3 (1GB): 12 + 18 = 30 bits.
-                let huge_page_offset_mask: u64 =
-                    (1 << (PAGE_TABLE_OFFSET_LENGTH + (level - 1) * PAGE_TABLE_INDEX_LENGTH)) - 1;
+            // Huge Pages are generally only set in level 2 and level 3 tables.
+            if level == 2 || level == 3 {
+                // If the HUGE_PAGE bit is set, it means the page table walk stops early and this entry
+                // points directly to a large contiguous block of physical memory (e.g. 2MB or 1GB).
+                if pte.flags().contains(PageTableFlags::HUGE_PAGE) {
+                    // A standard page uses 12 bits for the offset (4KB).
+                    // Each skipped page table level turns its 9 index bits into part of the offset.
+                    // Level 2 (2MB): 12 + 9 = 21 bits. Level 3 (1GB): 12 + 18 = 30 bits.
+                    let huge_page_offset_mask: u64 = (1
+                        << (PAGE_TABLE_OFFSET_LENGTH + (level - 1) * PAGE_TABLE_INDEX_LENGTH))
+                        - 1;
 
-                return Some(PhysicalAddress::new(
-                    page_table_frame.start_address().address()
-                        + (vaddr.address() & huge_page_offset_mask),
-                ));
+                    return Some(PhysicalAddress::new(
+                        page_table_frame.start_address().address()
+                            + (vaddr.address() & huge_page_offset_mask),
+                    ));
+                }
             }
         }
 

@@ -38,6 +38,13 @@ fn test_main(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     assert!(translated_vga.is_some());
     assert_eq!(translated_vga.unwrap().address(), paddr_vga);
 
+    // Test Huge Page address translation
+    let paddr_huge_page = 0x1000;
+    let vaddr_huge_page = VirtualAddress::new(paddr_huge_page + physical_memory_offset);
+    let translated_huge_page = paging.translate(vaddr_huge_page);
+    assert!(translated_huge_page.is_some());
+    assert_eq!(translated_huge_page.unwrap().address(), paddr_huge_page);
+
     serial_println!("[ok]");
     exit_qemu(QemuExitCode::Success);
     kernel::hlt()
