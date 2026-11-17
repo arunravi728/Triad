@@ -77,7 +77,7 @@ impl Paging {
 // This essentially means that the given physical_address can be accessed via the computed
 // virtual_address
 #[inline]
-pub fn get_page_table_ptr(paddr_offset: u64, page_table_paddr: PhysicalAddress) -> *mut PageTable {
+fn get_page_table_ptr(paddr_offset: u64, page_table_paddr: PhysicalAddress) -> *mut PageTable {
     let page_table_vaddr: VirtualAddress =
         VirtualAddress::new(page_table_paddr.address() + paddr_offset);
     page_table_vaddr.address() as *mut PageTable
