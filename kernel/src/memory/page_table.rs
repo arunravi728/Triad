@@ -102,6 +102,13 @@ impl PageTableEntry {
         PageTableFlags::from_bits_retain(self.entry & !PTE_PADDR_MASK)
     }
 
+    pub fn set_flags(&mut self, ptf: PageTableFlags) {
+        // bitflags lets callers build values with undefined bits via from_bits_retain
+        // A PageTableFlags with bits in 12-51 would silently corrupt the frame address.
+        // Hence we explicitly negate the frame address bits from ptf.
+        self.entry = (self.entry & PTE_PADDR_MASK) | (ptf.bits() & !PTE_PADDR_MASK);
+    }
+
     #[inline]
     pub fn frame(&self) -> Option<Frame> {
         if !self.flags().contains(PageTableFlags::PRESENT) {
