@@ -23,7 +23,7 @@ fn test_main(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     };
 
     // Initialize address translation and the Level 4 page table
-    let paging: Paging = Paging::init(physical_memory_offset);
+    let paging: Paging = unsafe { Paging::init(physical_memory_offset) };
 
     // Test virtual address corresponding to physical address 0x0
     let vaddr_zero = VirtualAddress::new(physical_memory_offset);

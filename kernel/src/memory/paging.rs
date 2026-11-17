@@ -15,8 +15,9 @@ pub struct Paging {
 }
 
 impl Paging {
+    // The init function is marked unsafe as it assumes the callers provides a safe paddr_offset.
     #[inline]
-    pub fn init(paddr_offset: u64) -> Paging {
+    pub unsafe fn init(paddr_offset: u64) -> Paging {
         let (level_4_page_table_frame, _) = CR3::read();
         Paging {
             paddr_offset,

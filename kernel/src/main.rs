@@ -70,7 +70,7 @@ fn kernel(boot_info: &'static mut bootloader_api::BootInfo) -> ! {
     };
 
     // Initialize address translation and the Level 4 page table
-    let paging: Paging = Paging::init(physical_memory_offset);
+    let paging: Paging = unsafe { Paging::init(physical_memory_offset) };
 
     let vaddr = VirtualAddress::new(physical_memory_offset);
     let paddr = paging.translate(vaddr);
